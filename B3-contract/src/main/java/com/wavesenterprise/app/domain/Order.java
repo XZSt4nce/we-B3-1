@@ -4,7 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 public class Order {
-    private int hash;
+    private String hash;
     private String clientPublicKey;
     private String organizationPublicKey;
     private String productKey;
@@ -17,7 +17,7 @@ public class Order {
     private OrderStatus status;
 
     public void updateHash() {
-        this.hash = hashCode();
+        this.hash = Integer.toHexString(hashCode());
     }
 
     public Order(
@@ -39,7 +39,7 @@ public class Order {
         updateHash();
     }
 
-    public int getHash() {
+    public String getHash() {
         return hash;
     }
 
