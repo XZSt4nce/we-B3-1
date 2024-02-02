@@ -1,6 +1,5 @@
 package com.wavesenterprise.app.api;
 
-import com.wavesenterprise.app.domain.UserRole;
 import com.wavesenterprise.sdk.contract.api.annotation.ContractAction;
 import com.wavesenterprise.sdk.contract.api.annotation.ContractInit;
 import org.jetbrains.annotations.NotNull;
@@ -10,7 +9,7 @@ import java.util.Date;
 
 public interface IContract {
     @ContractInit
-    void init();
+    void init(@NotNull String login);
 
     @ContractAction
     void signUp(
@@ -45,21 +44,18 @@ public interface IContract {
     void registerUser(
             @NotNull String sender,
             @NotNull String userPublicKey,
-            @Nullable String login,
             @Nullable String title,
             @Nullable String description,
             @Nullable String fullName,
             @Nullable String email,
-            @Nullable String[] regions,
-            @Nullable UserRole role,
-            @Nullable String organizationKey
+            @Nullable String[] regions
     ) throws Exception;
 
     @ContractAction
     void blockUser(
             @NotNull String sender,
             @NotNull String userPublicKey
-    );
+    ) throws Exception;
 
     @ContractAction
     void createProduct(
@@ -73,13 +69,12 @@ public interface IContract {
     void registerProduct(
             @NotNull String sender,
             @NotNull String productKey,
-            @Nullable String title,
             @Nullable String description,
             @Nullable String[] regions,
             @NotNull Integer minOrderCount,
             @NotNull Integer maxOrderCount,
             @NotNull String[] distributors
-    );
+    ) throws Exception;
 
     @ContractAction
     void makeOrder(
@@ -89,40 +84,68 @@ public interface IContract {
             @NotNull Integer count,
             @NotNull Date desiredDeliveryLimit,
             @NotNull String deliveryAddress
-    );
+    ) throws Exception;
 
     @ContractAction
-    void confirmOrder(
+    void clarifyOrder(
             @NotNull String sender,
             @NotNull String orderKey,
             @NotNull Integer totalPrice,
-            @NotNull Integer deliveryLimitUnixTime,
-            @NotNull Boolean isPrepaymentPossible
-    );
+            @Nullable Integer deliveryLimitUnixTime,
+            @NotNull Boolean isPrepaymentAvailable
+    ) throws Exception;
 
     @ContractAction
     void cancelOrder(
             @NotNull String sender,
             @NotNull String orderKey
-    );
+    ) throws Exception;
 
     @ContractAction
-    void completeOrderStage(
+    void confirmOrder(
             @NotNull String sender,
             @NotNull String orderKey
-    );
+    ) throws Exception;
 
     @ContractAction
-    void addUser(
-            String email,
-            String login,
-            String password
-    );
+    void payOrder(
+            @NotNull String sender,
+            @NotNull String orderKey
+    ) throws Exception;
+
+    @ContractAction
+    void completeOrder(
+            @NotNull String sender,
+            @NotNull String orderKey
+    ) throws Exception;
+
+    @ContractAction
+    void takeOrder(
+            @NotNull String sender,
+            @NotNull String orderKey
+    ) throws Exception;
 
     class Keys {
         public static final String OPERATOR = "OPERATOR";
         public static final String USERS_MAPPING_PREFIX = "USERS";
         public static final String ORDERS_MAPPING_PREFIX = "ORDERS";
+        public static final String PRODUCTS_MAPPING_PREFIX = "PRODUCTS";
         public static final String EMPLOYEES_MAPPING_PREFIX = "EMPLOYEES";
+        public static final String PROPERTY_MAPPING_PREFIX = "PROPERTY";
+    }
+
+    class Exceptions {
+        public static final Exception USER_NOT_FOUND = new Exception("Пользователь не найден");
+        public static final Exception USER_ALREADY_REGISTERED = new Exception("Пользователь уже зарегистрирован в системе");
+        public static final Exception USER_ALREADY_SIGNED_UP = new Exception("Пользователь с таким логином уже существует");
+        public static final Exception NOT_ENOUGH_RIGHTS = new Exception("Недостаточно прав");
+        public static final Exception ORDER_NOT_FOUND = new Exception("Заказ не найден");
+        public static final Exception USER_IS_BLOCKED = new Exception("Пользователь заблокирован");
+        public static final Exception PRODUCT_ALREADY_EXIST = new Exception("Продукт уже существует");
+        public static final Exception PRODUCT_NOT_FOUND = new Exception("Продукт не найдён");
+        public static final Exception NO_PRODUCT = new Exception("У пользователя нет данного продукта");
+        public static final Exception INCORRECT_DATA = new Exception("Введены некорректные данные");
+        public static final Exception TOO_FEW_PRODUCTS = new Exception("Слишком мало продуктов заказано");
+        public static final Exception TOO_MANY_PRODUCTS = new Exception("Слишком много продуктов заказано");
     }
 }

@@ -1,62 +1,51 @@
 package com.wavesenterprise.app.domain;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 public class Order {
-    private String hash;
-    private String clientPublicKey;
-    private String organizationPublicKey;
+    private String clientKey;
+    private String organizationKey;
     private String productKey;
     private int count;
-    private Date desiredDeliveryLimit;
+    private int price;
+    private Date deliveryDate;
     private String deliveryAddress;
     private Date orderCreationDate;
-    private String price;
-    private boolean isPrepaymentPossible;
     private OrderStatus status;
-
-    public void updateHash() {
-        this.hash = Integer.toHexString(hashCode());
-    }
+    private Boolean isPrepaymentAvailable;
 
     public Order(
-            String clientPublicKey,
-            String organizationPublicKey,
+            String clientKey,
+            String organizationKey,
             String productKey,
             int count,
-            Date desiredDeliveryLimit,
+            Date deliveryDate,
             String deliveryAddress
-    ) throws NoSuchAlgorithmException {
-        this.clientPublicKey = clientPublicKey;
-        this.organizationPublicKey = organizationPublicKey;
+    ) {
+        this.clientKey = clientKey;
+        this.organizationKey = organizationKey;
         this.productKey = productKey;
         this.count = count;
-        this.desiredDeliveryLimit = desiredDeliveryLimit;
+        this.deliveryDate = deliveryDate;
         this.deliveryAddress = deliveryAddress;
         this.status = OrderStatus.WAITING_FOR_EMPLOYEE;
         this.orderCreationDate = new Date();
-        updateHash();
     }
 
-    public String getHash() {
-        return hash;
+    public String getClientKey() {
+        return clientKey;
     }
 
-    public String getClientPublicKey() {
-        return clientPublicKey;
+    public void setClientKey(String clientPublicKey) {
+        this.clientKey = clientPublicKey;
     }
 
-    public void setClientPublicKey(String clientPublicKey) {
-        this.clientPublicKey = clientPublicKey;
+    public String getOrganizationKey() {
+        return organizationKey;
     }
 
-    public String getOrganizationPublicKey() {
-        return organizationPublicKey;
-    }
-
-    public void setOrganizationPublicKey(String organizationPublicKey) {
-        this.organizationPublicKey = organizationPublicKey;
+    public void setOrganizationPublicKey(String organizationKey) {
+        this.organizationKey = organizationKey;
     }
 
     public String getProductKey() {
@@ -91,28 +80,12 @@ public class Order {
         this.orderCreationDate = orderCreationDate;
     }
 
-    public Date getDesiredDeliveryLimit() {
-        return desiredDeliveryLimit;
+    public Date getDeliveryDate() {
+        return deliveryDate;
     }
 
-    public void setDesiredDeliveryLimit(Date desiredDeliveryLimit) {
-        this.desiredDeliveryLimit = desiredDeliveryLimit;
-    }
-
-    public String getPrice() {
-        return price;
-    }
-
-    public void setPrice(String price) {
-        this.price = price;
-    }
-
-    public boolean isPrepaymentPossible() {
-        return isPrepaymentPossible;
-    }
-
-    public void setPrepaymentPossible(boolean prepaymentPossible) {
-        isPrepaymentPossible = prepaymentPossible;
+    public void setDeliveryDate(Date deliveryDate) {
+        this.deliveryDate = deliveryDate;
     }
 
     public OrderStatus getStatus() {
@@ -121,5 +94,25 @@ public class Order {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public void setOrganizationKey(String organizationKey) {
+        this.organizationKey = organizationKey;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
+    }
+
+    public Boolean isPrepaymentAvailable() {
+        return isPrepaymentAvailable;
+    }
+
+    public void setPrepaymentAvailable(Boolean prepaymentAvailable) {
+        isPrepaymentAvailable = prepaymentAvailable;
     }
 }

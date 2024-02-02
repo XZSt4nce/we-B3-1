@@ -35,11 +35,11 @@ public class User {
         this.fullName = fullName;
         this.email = email;
         this.regions = regions;
+        this.products = new ArrayList<>();
         this.role = role;
         this.isActivated = false;
         this.isBlocked = false;
         this.organizationKey = organizationKey;
-        this.products = new ArrayList<Product>();
     }
 
     public String getLogin() {
@@ -120,5 +120,21 @@ public class User {
 
     public void setBlocked(boolean blocked) {
         isBlocked = blocked;
+    }
+
+    public String[] getRegions() {
+        return regions;
+    }
+
+    public void setRegions(String[] regions) {
+        this.regions = regions;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void addProduct(Product product) {
+        this.products.add(product);
     }
 }
