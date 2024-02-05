@@ -6,15 +6,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_FUNDS;
+
 public class User {
-    private String login;
-    private String title;
+    private final String login;
+    private int balance;
+    private final String title;
     private String description;
     private String fullName;
     private String email;
     private String[] regions;
-    private List<Product> products;
-    private UserRole role;
+    private final List<String> products;
+    private final UserRole role;
     private boolean isActivated;
     private boolean isBlocked;
     private String organizationKey;
@@ -30,6 +33,7 @@ public class User {
             @Nullable String organizationKey
     ) {
         this.login = login;
+        this.balance = 10_000;
         this.title = title;
         this.description = description;
         this.fullName = fullName;
@@ -42,21 +46,39 @@ public class User {
         this.organizationKey = organizationKey;
     }
 
+    public void activate(
+            @NotNull String description,
+            @NotNull String fullName,
+            @NotNull String email,
+            @NotNull String[] regions
+    ) {
+        this.description = description;
+        this.fullName = fullName;
+        this.email = email;
+        this.regions = regions;
+        this.isActivated = true;
+    }
+
+    public void block() {
+        this.isBlocked = true;
+    }
+
+    public void increaseBalance(int value) {
+        this.balance += value;
+    }
+
+    public void decreaseBalance(int value) throws Exception {
+        if (this.balance < value) {
+            throw NOT_ENOUGH_FUNDS;
+        }
+        this.balance -= value;
+    }
+
     public String getLogin() {
         return login;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getTitle() { return title; }
 
     public String getDescription() {
         return description;
@@ -82,28 +104,12 @@ public class User {
         this.email = email;
     }
 
-    public String[] getRegion() {
-        return regions;
-    }
-
-    public void setRegion(String[] regions) {
-        this.regions = regions;
-    }
-
     public UserRole getRole() {
         return role;
     }
 
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
-
     public boolean isActivated() {
         return isActivated;
-    }
-
-    public void setActivated(boolean activated) {
-        isActivated = activated;
     }
 
     public String getOrganizationKey() {
@@ -118,10 +124,6 @@ public class User {
         return isBlocked;
     }
 
-    public void setBlocked(boolean blocked) {
-        isBlocked = blocked;
-    }
-
     public String[] getRegions() {
         return regions;
     }
@@ -130,11 +132,23 @@ public class User {
         this.regions = regions;
     }
 
-    public List<Product> getProducts() {
+    public List<String> getProducts() {
         return products;
     }
 
-    public void addProduct(Product product) {
-        this.products.add(product);
+    public void addProduct(String productKey, int count) {
+        for (int i = 0; i < count; i++) {
+            this.products.add(productKey);
+        }
+    }
+
+    public void removeProduct(String productKey, int count) {
+        for (int i = 0; i < count; i++) {
+            this.products.remove(productKey);
+        }
+    }
+
+    public int getBalance() {
+        return balance;
     }
 }

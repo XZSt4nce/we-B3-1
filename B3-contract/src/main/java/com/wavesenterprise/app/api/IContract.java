@@ -41,10 +41,9 @@ public interface IContract {
     ) throws Exception;
 
     @ContractAction
-    void registerUser(
+    void activateUser(
             @NotNull String sender,
             @NotNull String userPublicKey,
-            @Nullable String title,
             @Nullable String description,
             @Nullable String fullName,
             @Nullable String email,
@@ -66,7 +65,7 @@ public interface IContract {
     ) throws Exception;
 
     @ContractAction
-    void registerProduct(
+    void confirmProduct(
             @NotNull String sender,
             @NotNull String productKey,
             @Nullable String description,
@@ -96,15 +95,10 @@ public interface IContract {
     ) throws Exception;
 
     @ContractAction
-    void cancelOrder(
+    void confirmOrCancelOrder(
             @NotNull String sender,
-            @NotNull String orderKey
-    ) throws Exception;
-
-    @ContractAction
-    void confirmOrder(
-            @NotNull String sender,
-            @NotNull String orderKey
+            @NotNull String orderKey,
+            @NotNull Boolean isConfirm
     ) throws Exception;
 
     @ContractAction
@@ -131,21 +125,22 @@ public interface IContract {
         public static final String ORDERS_MAPPING_PREFIX = "ORDERS";
         public static final String PRODUCTS_MAPPING_PREFIX = "PRODUCTS";
         public static final String EMPLOYEES_MAPPING_PREFIX = "EMPLOYEES";
-        public static final String PROPERTY_MAPPING_PREFIX = "PROPERTY";
     }
 
     class Exceptions {
         public static final Exception USER_NOT_FOUND = new Exception("Пользователь не найден");
-        public static final Exception USER_ALREADY_REGISTERED = new Exception("Пользователь уже зарегистрирован в системе");
+        public static final Exception USER_ALREADY_ACTIVATED = new Exception("Учётная запись пользователя уже активирована");
         public static final Exception USER_ALREADY_SIGNED_UP = new Exception("Пользователь с таким логином уже существует");
         public static final Exception NOT_ENOUGH_RIGHTS = new Exception("Недостаточно прав");
         public static final Exception ORDER_NOT_FOUND = new Exception("Заказ не найден");
         public static final Exception USER_IS_BLOCKED = new Exception("Пользователь заблокирован");
         public static final Exception PRODUCT_ALREADY_EXIST = new Exception("Продукт уже существует");
         public static final Exception PRODUCT_NOT_FOUND = new Exception("Продукт не найдён");
-        public static final Exception NO_PRODUCT = new Exception("У пользователя нет данного продукта");
+        public static final Exception NOT_ENOUGH_PRODUCTS = new Exception("У организации недостаточно продукта");
         public static final Exception INCORRECT_DATA = new Exception("Введены некорректные данные");
         public static final Exception TOO_FEW_PRODUCTS = new Exception("Слишком мало продуктов заказано");
         public static final Exception TOO_MANY_PRODUCTS = new Exception("Слишком много продуктов заказано");
+        public static final Exception NOT_ENOUGH_FUNDS = new Exception("Недостаточно средств");
+        public static final Exception CANNOT_SELL_PRODUCT = new Exception("Один из дистрибуторов не может реализовать продукт");
     }
 }

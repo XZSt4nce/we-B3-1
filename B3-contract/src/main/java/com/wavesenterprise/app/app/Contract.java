@@ -20,7 +20,6 @@ public class Contract implements IContract {
     private final Mapping<User> userMapping; // Хранит всех пользователей
     private final Mapping<Order> orderMapping; // Хранит все заказы
     private final Mapping<Product> productMapping; // Хранит все продукты
-    private final Mapping<List<String>> propertyMapping; // Хранит ключи всех продуктов пользователей
     private final Mapping<List<String>> employeesMapping; // Хранит ключи всех сотрудников организаций
 
 
@@ -30,8 +29,6 @@ public class Contract implements IContract {
         this.orderMapping = contractState.getMapping(Order.class, ORDERS_MAPPING_PREFIX);
         this.productMapping = contractState.getMapping(new TypeReference<>() {
         }, PRODUCTS_MAPPING_PREFIX);
-        this.propertyMapping = contractState.getMapping(new TypeReference<>() {
-        }, PROPERTY_MAPPING_PREFIX);
         this.employeesMapping = contractState.getMapping(new TypeReference<>() {
         }, EMPLOYEES_MAPPING_PREFIX);
     }
@@ -46,7 +43,7 @@ public class Contract implements IContract {
         userMapping.put(login, new User(login, null, null, null, null, null, UserRole.OPERATOR, null));
     }
 
-    // Регистрация для поставщика (производителя)
+    // Метод регистрации для поставщика (производителя)
     @Override
     public void signUp(
             @NotNull String login,
@@ -57,10 +54,14 @@ public class Contract implements IContract {
             @NotNull String[] regions,
             @Nullable String organizationKey
     ) throws Exception {
-        notSignedUp(login);
+        notSignedUp(login); // Проверка, что пользователя с таким логином нет в системе
+
+        // Если пользователь указал ключ организации, то она должна быть поставщиком
         if (isPresent(organizationKey)) {
             onlyRole(organizationKey, UserRole.SUPPLIER);
         }
+
+        // Добавление пользователя в систему
         userMapping.put(login, new User(
                 login,
                 title,
@@ -73,7 +74,7 @@ public class Contract implements IContract {
         ));
     }
 
-    // Регистрация для дистрибутора
+    // Метод регистрации для дистрибутора
     @Override
     public void signUp(
             @NotNull String login,
@@ -83,10 +84,14 @@ public class Contract implements IContract {
             @NotNull String[] regions,
             @Nullable String organizationKey
     ) throws Exception {
-        notSignedUp(login);
+        notSignedUp(login); // Проверка, что пользователя с таким логином нет в системе
+
+        // Если пользователь указал ключ организации, то она должна быть дистрибутором
         if (isPresent(organizationKey)) {
             onlyRole(organizationKey, UserRole.DISTRIBUTOR);
         }
+
+        // Добавление пользователя в систему
         userMapping.put(login, new User(
                 login,
                 null,
@@ -99,7 +104,7 @@ public class Contract implements IContract {
         ));
     }
 
-    // Регистрация для конечного клиента
+    // Метод регистрации для конечного клиента
     @Override
     public void signUp(
             @NotNull String login,
@@ -107,7 +112,9 @@ public class Contract implements IContract {
             @NotNull String email,
             @NotNull String region
     ) throws Exception {
-        notSignedUp(login);
+        notSignedUp(login); // Проверка, что пользователя с таким логином нет в системе
+
+        // Добавление пользователя в систему
         userMapping.put(login, new User(
                 login,
                 null,
@@ -120,68 +127,71 @@ public class Contract implements IContract {
         ));
     }
 
+    // Метод активации пользователя в системе
     @Override
-    public void registerUser(
+    public void activateUser(
             @NotNull String sender,
             @NotNull String userPublicKey,
-            @Nullable String title,
             @Nullable String description,
             @Nullable String fullName,
             @Nullable String email,
             @Nullable String[] regions
     ) throws Exception {
-        onlyRole(sender, UserRole.OPERATOR);
-        userExist(userPublicKey);
+        onlyRole(sender, UserRole.OPERATOR); // Метод может вызвать только оператор
+        userExist(userPublicKey); // Проверка на то, что пользователь с указанным ключом существует
         User user = userMapping.get(userPublicKey);
-        if (user.isActivated()) {
-            throw USER_ALREADY_REGISTERED;
-        }
 
-        if (isPresent(title)) {
-            user.setTitle(title);
-        }
-        if (isPresent(description)) {
-            user.setDescription(description);
-        }
-        if (isPresent(fullName)) {
-            user.setFullName(fullName);
-        }
-        if (isPresent(email)) {
-            user.setEmail(email);
-        }
-        if (isPresent(regions)) {
-            user.setRegions(regions);
+        // Если пользователь уже активирован, то отменить выполнение метода
+        if (user.isActivated()) {
+            throw USER_ALREADY_ACTIVATED;
         }
 
         {
+            // Если оператор редактировал некоторые поля учётной записи, то перезаписать их
+            description = isPresent(description) ? description : user.getDescription();
+            fullName = isPresent(fullName) ? fullName : user.getFullName();
+            email = isPresent(email) ? email : user.getEmail();
+            regions = isPresent(regions) ? regions : user.getRegions();
+        }
+
+        {
+            // Если пользователь указывал ключ организации, то добавить ключ пользователя к списку сотрудников организации
             String organizationKey = user.getOrganizationKey();
             if (isPresent(organizationKey)) {
                 addToMappingStringList(employeesMapping, organizationKey, userPublicKey);
             }
         }
 
-        user.setActivated(true);
-        userMapping.put(userPublicKey, user);
+        user.activate(description, fullName, email, regions); // Активация пользователя
+        userMapping.put(userPublicKey, user); // Обновление учётной записи пользователя в системе
     }
 
+    // Метод блокировки пользователя
     @Override
     public void blockUser(
             @NotNull String sender,
             @NotNull String userPublicKey
     ) throws Exception {
-        onlyRole(sender, UserRole.OPERATOR);
-        userExist(userPublicKey);
+        onlyRole(sender, UserRole.OPERATOR); // Выполнять метод может только оператор
+        userExist(userPublicKey); // Проверка на то, что пользователь с указанным ключом существует
+
+        // Если оператор пытается заблокировать сам себя, то отказать в выполнении метода
         if (sender.equals(userPublicKey)) {
             throw NOT_ENOUGH_RIGHTS;
         }
+
         User user = userMapping.get(userPublicKey);
+
+        // Если пользователь уже заблокирован, то отменить выполнение метода
         if (user.isBlocked()) {
-            throw new Exception("Пользователь уже заблокирован");
+            throw USER_IS_BLOCKED;
         }
-        user.setBlocked(true);
-        userMapping.put(userPublicKey, user);
+
+        user.block(); // Блокировка пользователя
+        userMapping.put(userPublicKey, user); // Обновление учётной записи пользователя в системе
     }
 
+    // Метод создания карточки продукта
     @Override
     public void createProduct(
             @NotNull String sender,
@@ -189,14 +199,14 @@ public class Contract implements IContract {
             @NotNull String description,
             @NotNull String[] regions
     ) throws Exception {
-        onlyRole(sender, UserRole.SUPPLIER);
-        productNotCreated(title);
-        productMapping.put(title, new Product(title, description, regions));
-        addToMappingStringList(propertyMapping, sender, title);
+        onlyRole(sender, UserRole.SUPPLIER); // Выполнять метод может только поставщик
+        productNotCreated(title); // Проверка на то, что такого продукта ещё нет в системе
+        productMapping.put(title, new Product(title, description, regions)); // Добавление продукта в систему
     }
 
+    // Метод подтверждения карточки продукта
     @Override
-    public void registerProduct(
+    public void confirmProduct(
             @NotNull String sender,
             @NotNull String productKey,
             @Nullable String description,
@@ -205,45 +215,52 @@ public class Contract implements IContract {
             @NotNull Integer maxOrderCount,
             @NotNull String[] distributors
     ) throws Exception {
-        onlyRole(sender, UserRole.OPERATOR);
-        productExist(productKey);
-        Product product = productMapping.get(productKey);
+        onlyRole(sender, UserRole.OPERATOR); // Выполнять метод может только оператор
+        productExist(productKey); // Проверка на то, что продукт существует в системе
 
-        if (isPresent(description)) {
-            product.setDescription(description);
-        }
-        if (isPresent(regions)) {
-            if (regions.length == 0) {
-                throw INCORRECT_DATA;
-            }
-            product.setRegions(regions);
-        }
-
-        product.setMinOrderCount(minOrderCount);
-        product.setMaxOrderCount(maxOrderCount);
-
+        // Если список дистрибуторов пустой, то отказать в выполнении метода
         if (distributors.length == 0) {
             throw INCORRECT_DATA;
         }
 
-        // Проверка на то, реализуют ли дистрибуторы продукт в регионах, в которых он производится
+        // Если количество товара за один заказ минимальное больше максимального, то отказать в выполнении метода
+        if (minOrderCount > maxOrderCount) {
+            throw INCORRECT_DATA;
+        }
+
+        Product product = productMapping.get(productKey);
+
+        // Если оператор редактирован некоторые параметры продукта, то перезаписать их
+        description = isPresent(description) ? description : product.getDescription();
+        if (isPresent(regions)) {
+            // Если список регионов, введённый оператором, пустой, то отказать в выполнении метода
+            if (regions.length == 0) {
+                throw INCORRECT_DATA;
+            }
+        } else {
+            regions = product.getRegions();
+        }
+
+        // Проверка на то, существуют ли дистрибуторы и могут ли они реализовать продукт в регионах, в которых он производится
         for (String distributor : distributors) {
             userExist(distributor);
             String[] distributorRegions = userMapping.get(distributor).getRegions();
             boolean notFound = true;
-            for (String region : product.getRegions()) {
+            for (String region : regions) {
                 if (Arrays.asList(distributorRegions).contains(region)) {
                     notFound = false;
                     break;
                 }
             }
             if (notFound) {
-                throw INCORRECT_DATA;
+                throw CANNOT_SELL_PRODUCT;
             }
         }
-        product.setDistributors(distributors);
+        product.confirm(description, regions, minOrderCount, maxOrderCount, distributors); // Подтверждение продукта
+        productMapping.put(productKey, product); // Обновление продукта в системе
     }
 
+    // Метод создания заказа
     @Override
     public void makeOrder(
             @NotNull String sender,
@@ -253,26 +270,64 @@ public class Contract implements IContract {
             @NotNull Date desiredDeliveryLimit,
             @NotNull String deliveryAddress
     ) throws Exception {
-        userNotBlocked(sender);
-        userNotBlocked(organizationKey);
-        haveProduct(organizationKey, productKey);
-        User user = userMapping.get(sender);
-        if (isPresent(user.getOrganizationKey())) {
-            sender = user.getOrganizationKey();
+        userNotBlocked(sender); // Клиент может вызвать метод, только если он не заблокирован оператором
+        userNotBlocked(organizationKey); // Клиент может адресовать заказ только незаблокированной организации
+
+        // Если количество заказываемого товара равно нулю, то отказать в выполнении метода
+        if (count == 0) {
+            throw INCORRECT_DATA;
         }
 
-        if (user.getRole() == UserRole.OPERATOR || user.getRole() == UserRole.DISTRIBUTOR) {
-            onlyRole(organizationKey, UserRole.SUPPLIER);
-        } else {
-            onlyRole(sender, UserRole.CLIENT);
-            onlyRole(organizationKey, UserRole.DISTRIBUTOR);
+        {
+            // Если заказ был сотруднику некой организации, то перезаписать в заказе ключ сотрудника на ключ организации
+            String actualOrganizationKey = userMapping.get(organizationKey).getOrganizationKey();
+            if (isPresent(actualOrganizationKey)) {
+                organizationKey = actualOrganizationKey;
+            }
         }
 
+        {
+            // Если минимальное/максимальное количество товара за один заказ равно нулю, то ограничения нет
+            Product product = productMapping.get(productKey);
+            // Если количество заказываемого товара меньше минимального ограничения, то отказать в выполнении метода
+            if (product.getMinOrderCount() != 0 && count < product.getMinOrderCount()) {
+                throw TOO_FEW_PRODUCTS;
+            }
+            // Если количество заказываемого товара больше максимального ограничения, то отказать в выполнении метода
+            if (product.getMaxOrderCount() != 0 && count > product.getMaxOrderCount()) {
+                throw TOO_MANY_PRODUCTS;
+            }
+        }
+
+        {
+            User user = userMapping.get(sender);
+            // Если клиент – сотрудник некой организации, то перезаписать в заказе ключ сотрудника на ключ организации
+            if (isPresent(user.getOrganizationKey())) {
+                sender = user.getOrganizationKey();
+            }
+
+            if (user.getRole() == UserRole.OPERATOR || user.getRole() == UserRole.DISTRIBUTOR) {
+                // Если клиент – оператор или дистрибутор, то заказать можно только у производителя
+                onlyRole(organizationKey, UserRole.SUPPLIER);
+            } else {
+                // Иначе заказчик должен быть конечным клиентом, а исполнитель – пользователем с правами дистрибутора
+                onlyRole(sender, UserRole.CLIENT);
+                onlyRole(organizationKey, UserRole.DISTRIBUTOR);
+                // Заказать продукт у организации можно только тогда, когда у неё есть данный продукт в необходимом количестве
+                haveProduct(organizationKey, productKey, count);
+                User executor = userMapping.get(organizationKey);
+                executor.removeProduct(productKey, count); // Удаление продукта(-ов) из имения исполнителя
+                userMapping.put(organizationKey, executor); // Обновление данных исполнителя в системе
+            }
+        }
+
+        // Создание заказа и запись в систему
         Order order = new Order(sender, organizationKey, productKey, count, desiredDeliveryLimit, deliveryAddress);
-        String hash = "hash"; // ToDo: hash method
-        orderMapping.put(hash, order);
+        String key = Integer.toHexString(Objects.hash(sender, productKey, organizationKey, count, order.getOrderCreationDate()));
+        orderMapping.put(key, order);
     }
 
+    // Метод уточнения данных заказа
     @Override
     public void clarifyOrder(
             @NotNull String sender,
@@ -281,94 +336,84 @@ public class Contract implements IContract {
             @Nullable Integer deliveryLimitUnixTime,
             @NotNull Boolean isPrepaymentAvailable
     ) throws Exception {
-        onlyOrganization(sender, orderKey);
-        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_EMPLOYEE);
+        onlyOrganization(sender, orderKey); // Вызвать метод может только организация (или её сотрудник), у которой был совершён заказ
+        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_EMPLOYEE); // Чтобы уточнить данные, заказ должен быть только создан
         Order order = orderMapping.get(orderKey);
+        // Если организацией (или её сотрудником) была изменена дата доставки, то перезаписать её
+        Date deliveryLimit = isPresent(deliveryLimitUnixTime) ? new Date(deliveryLimitUnixTime) : order.getDeliveryDate();
+        order.clarify(totalPrice, deliveryLimit, isPrepaymentAvailable); // Уточнение данных
+        orderMapping.put(orderKey, order); // Обновление заказа в системе
+    }
 
-        order.setPrice(totalPrice);
-        order.setPrepaymentAvailable(isPrepaymentAvailable);
-        if (isPresent(deliveryLimitUnixTime)) {
-            order.setDeliveryDate(new Date(deliveryLimitUnixTime));
+    // Метод для подтверждения или отказа от заказа
+    @Override
+    public void confirmOrCancelOrder(
+            @NotNull String sender,
+            @NotNull String orderKey,
+            @NotNull Boolean isConfirm
+    ) throws Exception {
+        onlyClient(sender, orderKey); // Вызвать метод может только клиент (конечный клиент, организация или её сотрудник), который привязан к заказу
+        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_CLIENT); // Чтобы отказаться от заказа, заказ должен быть только уточнён
+        Order order = orderMapping.get(orderKey);
+        if (isConfirm) {
+            // Если у пользователя не хватает денег на оплату заказа, то отказать в выполнении метода
+            User user = userMapping.get(order.getClientKey());
+            if (user.getBalance() < order.getPrice()) {
+                throw NOT_ENOUGH_FUNDS;
+            }
+            order.confirm(); // Подтверждение заказа
+        } else {
+            order.cancel(); // Отказ от заказа
         }
-
-        orderMapping.put(orderKey, order);
+        orderMapping.put(orderKey, order); // Обновление заказа в системе
     }
 
-    @Override
-    public void cancelOrder(
-            @NotNull String sender,
-            @NotNull String orderKey
-    ) throws Exception {
-        onlyClient(sender, orderKey);
-        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_CLIENT);
-        Order order = orderMapping.get(orderKey);
-        order.setStatus(OrderStatus.CANCELLED);
-        orderMapping.put(orderKey, order);
-    }
-
-    @Override
-    public void confirmOrder(
-            @NotNull String sender,
-            @NotNull String orderKey
-    ) throws Exception {
-        onlyClient(sender, orderKey);
-        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_CLIENT);
-        Order order = orderMapping.get(orderKey);
-        order.setStatus(OrderStatus.EXECUTING);
-        orderMapping.put(orderKey, order);
-    }
-
+    // Метод оплаты заказа (до или после выполнения)
     @Override
     public void payOrder(
             @NotNull String sender,
             @NotNull String orderKey
     ) throws Exception {
-        onlyClient(sender, orderKey);
+        onlyClient(sender, orderKey); // Вызвать метод может только клиент (конечный клиент, организация или её сотрудник), который привязан к заказу
         Order order = orderMapping.get(orderKey);
-        if (order.getStatus() == OrderStatus.WAITING_FOR_CLIENT) {
-            if (order.isPrepaymentAvailable()) {
-                throw NOT_ENOUGH_RIGHTS;
-            }
-            order.setStatus(OrderStatus.EXECUTING_PAID);
-        } else {
-            onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_PAYMENT);
-            order.setStatus(OrderStatus.WAITING_FOR_TAKING);
-        }
-        orderMapping.put(orderKey, order);
+
+        // Оплата заказа
+        transfer(sender, order.getOrganizationKey(), order.getPrice());
+        order.pay();
+
+        orderMapping.put(orderKey, order); // Обновление заказа в системе
     }
 
+    // Метод выполнения заказа
     @Override
     public void completeOrder(
             @NotNull String sender,
             @NotNull String orderKey
     ) throws Exception {
-        onlyOrganization(sender, orderKey);
+        onlyOrganization(sender, orderKey); // Вызвать метод может только организация (или её сотрудник), у которой был совершён заказ
         Order order = orderMapping.get(orderKey);
-        order.setDeliveryDate(new Date());
-        if (order.getStatus() == OrderStatus.EXECUTING) {
-            order.setStatus(OrderStatus.WAITING_FOR_PAYMENT);
-        } else if (order.getStatus() == OrderStatus.EXECUTING_PAID) {
-            order.setStatus(OrderStatus.WAITING_FOR_TAKING);
-        } else {
-            throw NOT_ENOUGH_RIGHTS;
-        }
-        orderMapping.put(orderKey, order);
+        order.complete(); // Выполнение заказа
+        orderMapping.put(orderKey, order); // Обновление заказа в системе
     }
 
+    // Метод получения заказа
     @Override
     public void takeOrder(
             @NotNull String sender,
             @NotNull String orderKey
     ) throws Exception {
-        onlyClient(sender, orderKey);
-        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_TAKING);
-        User user = userMapping.get(sender);
-        if (isPresent(user.getOrganizationKey())) {
-            user = userMapping.get(user.getOrganizationKey());
-        }
-        // ToDo: добавление продукта покупателю
+        onlyClient(sender, orderKey); // Вызвать метод может только клиент (конечный клиент, организация или её сотрудник), который привязан к заказу
+        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_TAKING); // Чтобы забрать продукта, заказ должен быть готов
         Order order = orderMapping.get(orderKey);
-        order.setStatus(OrderStatus.TAKEN);
+        {
+            // Добавление продукта(-ов) клиенту
+            User user = userMapping.get(order.getClientKey());
+            String productKey = order.getProductKey();
+            user.addProduct(productKey, order.getCount());
+            userMapping.put(order.getClientKey(), user);
+        }
+        // Присвоение заказу статуса "Получен"
+        order.take();
         orderMapping.put(orderKey, order);
     }
 
@@ -448,13 +493,13 @@ public class Contract implements IContract {
         }
     }
 
-    private void haveProduct(String userPublicKey, String productKey) throws Exception {
-        if (propertyMapping.has(userPublicKey)) {
-            if (!propertyMapping.get(userPublicKey).contains(productKey)) {
-                throw NO_PRODUCT;
+    private void haveProduct(String userPublicKey, String productKey, int count) throws Exception {
+        User user = userMapping.get(userPublicKey);
+        // Производитель создаёт продукты для других, поэтому ему проверка не требуется
+        if (user.getRole() != UserRole.SUPPLIER) {
+            if (user.getProducts().stream().filter(userProductKey -> Objects.equals(userProductKey, productKey)).toArray().length < count) {
+                throw NOT_ENOUGH_PRODUCTS;
             }
-        } else {
-            throw NO_PRODUCT;
         }
     }
 
@@ -464,6 +509,21 @@ public class Contract implements IContract {
 
     private boolean isPresent(String s) {
         return (s != null && !s.equals(""));
+    }
+
+    private boolean isPresent(String[] sArr) {
+        return (sArr != null && sArr.length != 0);
+    }
+
+    private void transfer(String from, String to, int amount) throws Exception {
+        User fromUser = userMapping.get(from);
+        User toUser = userMapping.get(to);
+
+        fromUser.decreaseBalance(amount);
+        toUser.increaseBalance(amount);
+
+        userMapping.put(from, fromUser);
+        userMapping.put(to, toUser);
     }
 
     private void addToMappingStringList(Mapping<List<String>> mapping, String key, String str) {

@@ -3,7 +3,7 @@ package com.wavesenterprise.app.domain;
 import org.jetbrains.annotations.NotNull;
 
 public class Product {
-    private String title;
+    private final String title;
     private String description;
     private String[] regions;
     private int minOrderCount;
@@ -23,12 +23,23 @@ public class Product {
         this.isConfirmed = false;
     }
 
-    public String getTitle() {
-        return title;
+    public void confirm(
+            @NotNull String description,
+            @NotNull String[] regions,
+            @NotNull Integer minOrderCount,
+            @NotNull Integer maxOrderCount,
+            @NotNull String[] distributors
+    ) {
+        this.description = description;
+        this.regions = regions;
+        this.minOrderCount = minOrderCount;
+        this.maxOrderCount = maxOrderCount;
+        this.distributors = distributors;
+        this.isConfirmed = true;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public String getTitle() {
+        return title;
     }
 
     public String getDescription() {
@@ -73,9 +84,5 @@ public class Product {
 
     public boolean isConfirmed() {
         return isConfirmed;
-    }
-
-    public void setConfirmed(boolean confirmed) {
-        isConfirmed = confirmed;
     }
 }
