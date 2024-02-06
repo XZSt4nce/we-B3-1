@@ -37,10 +37,36 @@ public class Contract implements IContract {
         CONTRACT METHODS
      */
 
+    /*
+        Метод деплоя контракта
+        Вход: логин оператора
+     */
     @Override
     public void init(@NotNull String login) {
         this.contractState.put(OPERATOR, login);
         userMapping.put(login, new User(login, null, null, null, null, null, UserRole.OPERATOR, null));
+    }
+
+    // Метод смены регионов в своей учётной записи
+    @Override
+    public void changeRegions(
+            @NotNull String sender,
+            @NotNull String[] regions
+    ) throws Exception {
+        userNotBlocked(sender);
+        if (!isPresent(regions)) {
+            throw INCORRECT_DATA;
+        }
+
+        User user = userMapping.get(sender);
+        if (user.getRole() == UserRole.CLIENT) {
+            if (regions.length > 1) {
+                throw INCORRECT_DATA;
+            }
+        }
+
+        user.setRegions(regions);
+        userMapping.put(sender, user);
     }
 
     // Метод регистрации для поставщика (производителя)
@@ -363,6 +389,9 @@ public class Contract implements IContract {
             }
             order.confirm(); // Подтверждение заказа
         } else {
+            User executor = userMapping.get(order.getOrganizationKey());
+            executor.addProduct(order.getProductKey(), order.getCount()); // Восстановление продуктов у исполнителя
+            userMapping.put(order.getOrganizationKey(), executor); // Обновление данных исполнителя в системе
             order.cancel(); // Отказ от заказа
         }
         orderMapping.put(orderKey, order); // Обновление заказа в системе
