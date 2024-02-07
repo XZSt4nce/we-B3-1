@@ -1,10 +1,10 @@
 package com.wavesenterprise.app.domain;
 
+import com.google.common.hash.Hashing;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.Objects;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.INCORRECT_DATA;
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_RIGHTS;
@@ -14,21 +14,30 @@ public class Order {
     private final String clientKey;
     private final String organizationKey;
     private final String productKey;
-    private final int count;
-    private int price;
+    private final Integer count;
+    private Integer price;
     private Date deliveryDate;
     private final String deliveryAddress;
     private final Date orderCreationDate;
     private OrderStatus status;
     private Boolean isPrepaymentAvailable;
 
+    public Order() {
+        this.clientKey = null;
+        this.organizationKey = null;
+        this.productKey = null;
+        this.count = null;
+        this.deliveryAddress = null;
+        this.orderCreationDate = null;
+    }
+
     public Order(
-            String clientKey,
-            String organizationKey,
-            String productKey,
-            int count,
-            Date deliveryDate,
-            String deliveryAddress
+            @NotNull String clientKey,
+            @NotNull String organizationKey,
+            @NotNull String productKey,
+            @NotNull Integer count,
+            @NotNull Date deliveryDate,
+            @NotNull String deliveryAddress
     ) {
         this.clientKey = clientKey;
         this.organizationKey = organizationKey;
@@ -42,20 +51,23 @@ public class Order {
     }
 
     private void updateHash() {
-        int orderData = Objects.hash(
-                this.hash,
-                this.clientKey,
-                this.organizationKey,
-                this.productKey,
-                this.count,
-                this.price,
-                this.deliveryDate,
-                this.deliveryAddress,
-                this.orderCreationDate,
-                this.status,
-                this.isPrepaymentAvailable
-        );
-        this.hash = Integer.toHexString(orderData);
+        String newHash = Hashing.sha256()
+                .hashString(
+                        this.hash
+                        +this.clientKey
+                        +this.organizationKey
+                        +this.productKey
+                        +this.count
+                        +this.price
+                        +this.deliveryDate
+                        +this.deliveryAddress
+                        +this.orderCreationDate
+                        +this.status
+                        +this.isPrepaymentAvailable,
+                        StandardCharsets.UTF_8
+                )
+                .toString();
+        this.hash = newHash;
     }
 
     public void clarify(

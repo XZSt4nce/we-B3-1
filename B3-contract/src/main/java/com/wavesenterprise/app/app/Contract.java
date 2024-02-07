@@ -44,34 +44,14 @@ public class Contract implements IContract {
     @Override
     public void init(@NotNull String login) {
         this.contractState.put(OPERATOR, login);
-        userMapping.put(login, new User(login, null, null, null, null, null, UserRole.OPERATOR, null));
-    }
-
-    // Метод смены регионов в своей учётной записи
-    @Override
-    public void changeRegions(
-            @NotNull String sender,
-            @NotNull String[] regions
-    ) throws Exception {
-        userNotBlocked(sender);
-        if (!isPresent(regions)) {
-            throw INCORRECT_DATA;
-        }
-
-        User user = userMapping.get(sender);
-        if (user.getRole() == UserRole.CLIENT) {
-            if (regions.length > 1) {
-                throw INCORRECT_DATA;
-            }
-        }
-
-        user.setRegions(regions);
-        userMapping.put(sender, user);
+        User operator = new User(login, "superTitle", "superDescription", "Wa o Wee", "admin@adm.in", new String[]{"США", "Индия", "Япония"}, UserRole.OPERATOR, null);
+        operator.activate(operator.getDescription(), operator.getFullName(), operator.getEmail(), operator.getRegions());
+        userMapping.put(login, operator);
     }
 
     // Метод регистрации для поставщика (производителя)
     @Override
-    public void signUp(
+    public void signUpSupplier(
             @NotNull String login,
             @NotNull String title,
             @NotNull String description,
@@ -102,7 +82,7 @@ public class Contract implements IContract {
 
     // Метод регистрации для дистрибутора
     @Override
-    public void signUp(
+    public void signUpDistributor(
             @NotNull String login,
             @NotNull String title,
             @NotNull String fullName,
@@ -132,7 +112,7 @@ public class Contract implements IContract {
 
     // Метод регистрации для конечного клиента
     @Override
-    public void signUp(
+    public void signUpClient(
             @NotNull String login,
             @NotNull String fullName,
             @NotNull String email,
@@ -189,6 +169,7 @@ public class Contract implements IContract {
         }
 
         user.activate(description, fullName, email, regions); // Активация пользователя
+        System.out.println(user);
         userMapping.put(userPublicKey, user); // Обновление учётной записи пользователя в системе
     }
 
@@ -298,6 +279,8 @@ public class Contract implements IContract {
     ) throws Exception {
         userNotBlocked(sender); // Клиент может вызвать метод, только если он не заблокирован оператором
         userNotBlocked(organizationKey); // Клиент может адресовать заказ только незаблокированной организации
+        // Клиент может заказать продукт, только если хотя бы один из его регионов совпадает хотя бы с одним из регионов распространения продукта
+        haveRegion(sender, productKey);
 
         // Если количество заказываемого товара равно нулю, то отказать в выполнении метода
         if (count == 0) {
@@ -423,6 +406,7 @@ public class Contract implements IContract {
         Order order = orderMapping.get(orderKey);
         order.complete(); // Выполнение заказа
         orderMapping.put(orderKey, order); // Обновление заказа в системе
+        System.out.println("lol");
     }
 
     // Метод получения заказа
@@ -458,7 +442,11 @@ public class Contract implements IContract {
 
     public void userNotBlocked(String userPublicKey) throws Exception {
         userExist(userPublicKey);
-        if (userMapping.get(userPublicKey).isBlocked()) {
+        User user = userMapping.get(userPublicKey);
+        if (!user.isActivated()) {
+            throw USER_IS_NOT_ACTIVATED;
+        }
+        if (user.isBlocked()) {
             throw USER_IS_BLOCKED;
         }
     }
@@ -537,7 +525,10 @@ public class Contract implements IContract {
     }
 
     private boolean isPresent(String s) {
-        return (s != null && !s.equals(""));
+        if (s != null && s.length() != 0) {
+            System.out.println("isPresent: " + s);
+        }
+        return (s != null && s.length() != 0);
     }
 
     private boolean isPresent(String[] sArr) {
@@ -562,6 +553,21 @@ public class Contract implements IContract {
             mapping.put(key, list);
         } else {
             mapping.put(key, new ArrayList<>(List.of(str)));
+        }
+    }
+
+    private void haveRegion(String userPublicKey, String productKey) throws Exception {
+        String[] userRegions = userMapping.get(userPublicKey).getRegions();
+        List<String> productRegions = Arrays.stream(productMapping.get(productKey).getRegions()).toList();
+        boolean notFound = true;
+        for (String userRegion : userRegions) {
+            if (productRegions.contains(userRegion)) {
+                notFound = false;
+                break;
+            }
+        }
+        if (notFound) {
+            throw PRODUCT_NOT_IN_REGION;
         }
     }
 }

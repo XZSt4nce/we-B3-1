@@ -13,13 +13,7 @@ public interface IContract {
     void init(@InvokeParam (name = "login") @NotNull String login);
 
     @ContractAction
-    void changeRegions(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "regions") @NotNull String[] regions
-    ) throws Exception;
-
-    @ContractAction
-    void signUp(
+    void signUpSupplier(
             @InvokeParam (name = "login") @NotNull String login,
             @InvokeParam (name = "title") @NotNull String title,
             @InvokeParam (name = "description") @NotNull String description,
@@ -30,7 +24,7 @@ public interface IContract {
     ) throws Exception;
 
     @ContractAction
-    void signUp(
+    void signUpDistributor(
             @InvokeParam (name = "login") @NotNull String login,
             @InvokeParam (name = "title") @NotNull String title,
             @InvokeParam (name = "fullName") @NotNull String fullName,
@@ -40,7 +34,7 @@ public interface IContract {
     ) throws Exception;
 
     @ContractAction
-    void signUp(
+    void signUpClient(
             @InvokeParam (name = "login") @NotNull String login,
             @InvokeParam (name = "fullName") @NotNull String fullName,
             @InvokeParam (name = "email") @NotNull String email,
@@ -141,6 +135,7 @@ public interface IContract {
         public static final Exception NOT_ENOUGH_RIGHTS = new Exception("Недостаточно прав");
         public static final Exception ORDER_NOT_FOUND = new Exception("Заказ не найден");
         public static final Exception USER_IS_BLOCKED = new Exception("Пользователь заблокирован");
+        public static final Exception USER_IS_NOT_ACTIVATED = new Exception("Пользователь не активирован");
         public static final Exception PRODUCT_ALREADY_EXIST = new Exception("Продукт уже существует");
         public static final Exception PRODUCT_NOT_FOUND = new Exception("Продукт не найдён");
         public static final Exception NOT_ENOUGH_PRODUCTS = new Exception("У организации недостаточно продукта");
@@ -149,5 +144,6 @@ public interface IContract {
         public static final Exception TOO_MANY_PRODUCTS = new Exception("Слишком много продуктов заказано");
         public static final Exception NOT_ENOUGH_FUNDS = new Exception("Недостаточно средств");
         public static final Exception CANNOT_SELL_PRODUCT = new Exception("Один из дистрибуторов не может реализовать продукт");
+        public static final Exception PRODUCT_NOT_IN_REGION = new Exception("Продукта нет в Вашем регионе");
     }
 }

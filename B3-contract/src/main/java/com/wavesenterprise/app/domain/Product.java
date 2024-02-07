@@ -6,11 +6,14 @@ public class Product {
     private final String title;
     private String description;
     private String[] regions;
-    private int minOrderCount;
-    private int maxOrderCount;
+    private Integer minOrderCount;
+    private Integer maxOrderCount;
     private String[] distributors;
     private boolean isConfirmed;
 
+    public Product() {
+        this.title = null;
+    }
 
     public Product(
             @NotNull String title,

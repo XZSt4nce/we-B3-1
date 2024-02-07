@@ -10,7 +10,7 @@ import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_FUNDS;
 
 public class User {
     private final String login;
-    private int balance;
+    private Integer balance;
     private final String title;
     private String description;
     private String fullName;
@@ -21,6 +21,13 @@ public class User {
     private boolean isActivated;
     private boolean isBlocked;
     private String organizationKey;
+
+    public User() {
+        this.login = null;
+        this.title = null;
+        this.products = new ArrayList<>();
+        this.role = null;
+    }
 
     public User(
             @NotNull String login,
@@ -150,5 +157,13 @@ public class User {
 
     public int getBalance() {
         return balance;
+    }
+
+    public void setActivated(boolean activated) {
+        isActivated = activated;
+    }
+
+    public void setBlocked(boolean blocked) {
+        isBlocked = blocked;
     }
 }
