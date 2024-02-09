@@ -1,0 +1,6 @@
+export const UserRole = {
+    OPERATOR: "OPERATOR",
+    DISTRIBUTOR: "DISTRIBUTOR",
+    SUPPLIER: "SUPPLIER",
+    CLIENT: "CLIENT"
+}
