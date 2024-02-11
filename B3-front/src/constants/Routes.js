@@ -1,10 +1,10 @@
-import SignInPage from "../ui/pages/SignInPage";
+import MainPage from "../ui/pages/MainPage";
 import MarketPage from "../ui/pages/MarketPage";
 
 export const Routes = [
     {
         path: "/",
-        page: SignInPage
+        page: MainPage
     },
     {
         path: "/market",

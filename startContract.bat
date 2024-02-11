@@ -23,7 +23,7 @@ docker pull --quiet %username%/%contract name%:%tag%
 FOR /F "tokens=2 delims=:" %%a IN ('docker images --quiet --no-trunc %username%/%contract name%:%tag%') DO (
 	SET id=%%a
 )
-FOR /F "tokens=2 delims=: " %%a IN ('curl -s -X POST "http://localhost:6882/transactions/signAndBroadcast" -H "accept: application/json" -H "Content-Type: application/json" -H "X-API-Key: %API key%" -d "{ \"image\": \"registry.hub.docker.com/%username%/%contract name%:%tag%\", \"fee\": 0, \"imageHash\": \"%id%\", \"type\": 103, \"params\": [ { \"type\": \"string\", \"value\": \"init\", \"key\": \"action\" }, { \"type\": \"string\", \"value\": \"%username%\", \"key\": \"login\" } ], \"version\": 2, \"sender\": \"%blockchain address%\", \"password\": \"%keypair password%\", \"feeAssetId\": null, \"contractName\": \"%contract name%\"}"^|find "id"') DO (
+FOR /F "tokens=2 delims=: " %%a IN ('curl -s -X POST "http://localhost:6882/transactions/signAndBroadcast" -H "accept: application/json" -H "Content-Type: application/json" -H "X-API-Key: %API key%" -d "{ \"image\": \"registry.hub.docker.com/%username%/%contract name%:%tag%\", \"fee\": 0, \"imageHash\": \"%id%\", \"type\": 103, \"params\": [ { \"type\": \"string\", \"value\": \"init\", \"key\": \"action\" } ], \"version\": 2, \"sender\": \"%blockchain address%\", \"password\": \"%keypair password%\", \"feeAssetId\": null, \"contractName\": \"%contract name%\"}"^|find "id"') DO (
 	SET contract address=%%a
 )
 FOR /F delims^=^"^ tokens^=1 %%a IN (%contract address%) DO (

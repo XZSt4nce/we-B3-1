@@ -1,65 +1,64 @@
 package com.wavesenterprise.app.domain;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_FUNDS;
+import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_PRODUCTS;
 
 public class User {
     private final String login;
+    private final String password;
     private Integer balance;
-    private final String title;
-    private String description;
     private String fullName;
     private String email;
     private String[] regions;
-    private final List<String> products;
+    private final List<String> productsProvided;
+    private final Map<String, Integer> products;
     private final UserRole role;
     private boolean isActivated;
     private boolean isBlocked;
-    private String organizationKey;
+    private final String organizationKey;
 
     public User() {
         this.login = null;
-        this.title = null;
-        this.products = new ArrayList<>();
+        this.password = null;
+        this.productsProvided = new ArrayList<>();
+        this.products = new HashMap<>();
         this.role = null;
+        this.organizationKey = null;
     }
 
     public User(
-            @NotNull String login,
-            @Nullable String title,
-            @Nullable String description,
-            @Nullable String fullName,
-            @Nullable String email,
-            @Nullable String[] regions,
-            @Nullable UserRole role,
-            @Nullable String organizationKey
+            String login,
+            String password,
+            String fullName,
+            String email,
+            String[] regions,
+            String organizationKey,
+            UserRole role
     ) {
         this.login = login;
+        this.password = password;
         this.balance = 10_000;
-        this.title = title;
-        this.description = description;
         this.fullName = fullName;
         this.email = email;
         this.regions = regions;
-        this.products = new ArrayList<>();
-        this.role = role;
-        this.isActivated = false;
+        this.productsProvided = new ArrayList<>();
+        this.products = new HashMap<>();
         this.isBlocked = false;
+        this.isActivated = role == UserRole.OPERATOR;
+        this.role = role;
         this.organizationKey = organizationKey;
     }
 
     public void activate(
-            @NotNull String description,
-            @NotNull String fullName,
-            @NotNull String email,
-            @NotNull String[] regions
+            String fullName,
+            String email,
+            String[] regions
     ) {
-        this.description = description;
         this.fullName = fullName;
         this.email = email;
         this.regions = regions;
@@ -83,16 +82,6 @@ public class User {
 
     public String getLogin() {
         return login;
-    }
-
-    public String getTitle() { return title; }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getFullName() {
@@ -123,10 +112,6 @@ public class User {
         return organizationKey;
     }
 
-    public void setOrganizationKey(String organizationKey) {
-        this.organizationKey = organizationKey;
-    }
-
     public boolean isBlocked() {
         return isBlocked;
     }
@@ -139,20 +124,21 @@ public class User {
         this.regions = regions;
     }
 
-    public List<String> getProducts() {
+    public Map<String, Integer> getProducts() {
         return products;
     }
 
-    public void addProduct(String productKey, int count) {
-        for (int i = 0; i < count; i++) {
-            this.products.add(productKey);
-        }
+    public void incProduct(String productKey, int count) {
+        int newCount = this.products.getOrDefault(productKey, 0) + count;
+        this.products.put(productKey, newCount);
     }
 
-    public void removeProduct(String productKey, int count) {
-        for (int i = 0; i < count; i++) {
-            this.products.remove(productKey);
+    public void decProduct(String productKey, int count) throws Exception {
+        int newCount = this.products.getOrDefault(productKey, 0) - count;
+        if (newCount < 0) {
+            throw NOT_ENOUGH_PRODUCTS;
         }
+        this.products.put(productKey, newCount);
     }
 
     public int getBalance() {
@@ -165,5 +151,21 @@ public class User {
 
     public void setBlocked(boolean blocked) {
         isBlocked = blocked;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setBalance(Integer balance) {
+        this.balance = balance;
+    }
+
+    public List<String> getProductsProvided() {
+        return productsProvided;
+    }
+
+    public void addProductProvided(String productKey) {
+        productsProvided.add(productKey);
     }
 }

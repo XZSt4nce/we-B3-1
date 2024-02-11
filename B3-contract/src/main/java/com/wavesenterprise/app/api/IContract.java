@@ -3,121 +3,111 @@ package com.wavesenterprise.app.api;
 import com.wavesenterprise.sdk.contract.api.annotation.ContractAction;
 import com.wavesenterprise.sdk.contract.api.annotation.ContractInit;
 import com.wavesenterprise.sdk.contract.api.annotation.InvokeParam;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
 public interface IContract {
     @ContractInit
-    void init(@InvokeParam (name = "login") @NotNull String login);
+    void init();
 
     @ContractAction
-    void signUpSupplier(
-            @InvokeParam (name = "login") @NotNull String login,
-            @InvokeParam (name = "title") @NotNull String title,
-            @InvokeParam (name = "description") @NotNull String description,
-            @InvokeParam (name = "fullName") @NotNull String fullName,
-            @InvokeParam (name = "email") @NotNull String email,
-            @InvokeParam (name = "regions") @NotNull String[] regions,
-            @InvokeParam (name = "organizationKey") @Nullable String organizationKey
-    ) throws Exception;
-
-    @ContractAction
-    void signUpDistributor(
-            @InvokeParam (name = "login") @NotNull String login,
-            @InvokeParam (name = "title") @NotNull String title,
-            @InvokeParam (name = "fullName") @NotNull String fullName,
-            @InvokeParam (name = "email") @NotNull String email,
-            @InvokeParam (name = "regions") @NotNull String[] regions,
-            @InvokeParam (name = "organizationKey") @Nullable String organizationKey
-    ) throws Exception;
-
-    @ContractAction
-    void signUpClient(
-            @InvokeParam (name = "login") @NotNull String login,
-            @InvokeParam (name = "fullName") @NotNull String fullName,
-            @InvokeParam (name = "email") @NotNull String email,
-            @InvokeParam (name = "region") @NotNull String region
+    void signUp(
+            @InvokeParam (name = "login") String login,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "title") String title,
+            @InvokeParam (name = "description") String description,
+            @InvokeParam (name = "fullName") String fullName,
+            @InvokeParam (name = "email") String email,
+            @InvokeParam (name = "regions") String[] regions,
+            @InvokeParam (name = "organizationKey") String organizationKey
     ) throws Exception;
 
     @ContractAction
     void activateUser(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "userPublicKey") @NotNull String userPublicKey,
-            @InvokeParam (name = "description") @Nullable String description,
-            @InvokeParam (name = "fullName") @Nullable String fullName,
-            @InvokeParam (name = "email") @Nullable String email,
-            @InvokeParam (name = "regions") @Nullable String[] regions
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "userPublicKey") String userPublicKey,
+            @InvokeParam (name = "fullName") String fullName,
+            @InvokeParam (name = "email") String email,
+            @InvokeParam (name = "regions") String[] regions
     ) throws Exception;
 
     @ContractAction
     void blockUser(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "userPublicKey") @NotNull String userPublicKey
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "userPublicKey") String userPublicKey
     ) throws Exception;
 
     @ContractAction
     void createProduct(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "title") @NotNull String title,
-            @InvokeParam (name = "description") @NotNull String description,
-            @InvokeParam (name = "regions") @NotNull String[] regions
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "title") String title,
+            @InvokeParam (name = "description") String description,
+            @InvokeParam (name = "regions") String[] regions
     ) throws Exception;
 
     @ContractAction
     void confirmProduct(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "productKey") @NotNull String productKey,
-            @InvokeParam (name = "description") @Nullable String description,
-            @InvokeParam (name = "regions") @Nullable String[] regions,
-            @InvokeParam (name = "minOrderCount") @NotNull Integer minOrderCount,
-            @InvokeParam (name = "maxOrderCount") @NotNull Integer maxOrderCount,
-            @InvokeParam (name = "distributors") @NotNull String[] distributors
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "productKey") String productKey,
+            @InvokeParam (name = "description") String description,
+            @InvokeParam (name = "regions") String[] regions,
+            @InvokeParam (name = "minOrderCount") int minOrderCount,
+            @InvokeParam (name = "maxOrderCount") int maxOrderCount,
+            @InvokeParam (name = "distributors") String[] distributors
     ) throws Exception;
 
     @ContractAction
     void makeOrder(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "productKey") @NotNull String productKey,
-            @InvokeParam (name = "organization") @NotNull String organization,
-            @InvokeParam (name = "count") @NotNull Integer count,
-            @InvokeParam (name = "desiredDeliveryLimit") @NotNull Date desiredDeliveryLimit,
-            @InvokeParam (name = "deliveryAddress") @NotNull String deliveryAddress
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "productKey") String productKey,
+            @InvokeParam (name = "organization") String organization,
+            @InvokeParam (name = "count") int count,
+            @InvokeParam (name = "desiredDeliveryLimit") Date desiredDeliveryLimit,
+            @InvokeParam (name = "deliveryAddress") String deliveryAddress
     ) throws Exception;
 
     @ContractAction
     void clarifyOrder(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "orderKey") @NotNull String orderKey,
-            @InvokeParam (name = "totalPrice") @NotNull Integer totalPrice,
-            @InvokeParam (name = "deliveryLimitUnixTime") @Nullable Integer deliveryLimitUnixTime,
-            @InvokeParam (name = "isPrepaymentAvailable") @NotNull Boolean isPrepaymentAvailable
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "orderKey") String orderKey,
+            @InvokeParam (name = "totalPrice") int totalPrice,
+            @InvokeParam (name = "deliveryLimitUnixTime") Date deliveryLimitUnixTime,
+            @InvokeParam (name = "isPrepaymentAvailable") Boolean isPrepaymentAvailable
     ) throws Exception;
 
     @ContractAction
     void confirmOrCancelOrder(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "orderKey") @NotNull String orderKey,
-            @InvokeParam (name = "isConfirm") @NotNull Boolean isConfirm
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "orderKey") String orderKey,
+            @InvokeParam (name = "isConfirm") Boolean isConfirm
     ) throws Exception;
 
     @ContractAction
     void payOrder(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "orderKey") @NotNull String orderKey
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "orderKey") String orderKey
     ) throws Exception;
 
     @ContractAction
     void completeOrder(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "orderKey") @NotNull String orderKey
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "orderKey") String orderKey
     ) throws Exception;
 
     @ContractAction
     void takeOrder(
-            @InvokeParam (name = "sender") @NotNull String sender,
-            @InvokeParam (name = "orderKey") @NotNull String orderKey
+            @InvokeParam (name = "sender") String sender,
+            @InvokeParam (name = "password") String password,
+            @InvokeParam (name = "orderKey") String orderKey
     ) throws Exception;
 
     class Keys {
@@ -125,11 +115,15 @@ public interface IContract {
         public static final String USERS_MAPPING_PREFIX = "USERS";
         public static final String ORDERS_MAPPING_PREFIX = "ORDERS";
         public static final String PRODUCTS_MAPPING_PREFIX = "PRODUCTS";
-        public static final String EMPLOYEES_MAPPING_PREFIX = "EMPLOYEES";
+        public static final String ORGANIZATIONS_MAPPING_PREFIX = "ORGANIZATIONS";
+        public static final String LAST_PRODUCT_ID = "LAST_PRODUCT_ID";
+        public static final String LAST_ORGANIZATION_ID = "LAST_ORGANIZATION_ID";
+        public static final String LAST_ORDER_ID = "LAST_ORDER_ID";
     }
 
     class Exceptions {
         public static final Exception USER_NOT_FOUND = new Exception("Пользователь не найден");
+        public static final Exception ORGANIZATION_NOT_FOUND = new Exception("Организация не найдена");
         public static final Exception USER_ALREADY_ACTIVATED = new Exception("Учётная запись пользователя уже активирована");
         public static final Exception USER_ALREADY_SIGNED_UP = new Exception("Пользователь с таким логином уже существует");
         public static final Exception NOT_ENOUGH_RIGHTS = new Exception("Недостаточно прав");
@@ -143,7 +137,8 @@ public interface IContract {
         public static final Exception TOO_FEW_PRODUCTS = new Exception("Слишком мало продуктов заказано");
         public static final Exception TOO_MANY_PRODUCTS = new Exception("Слишком много продуктов заказано");
         public static final Exception NOT_ENOUGH_FUNDS = new Exception("Недостаточно средств");
-        public static final Exception CANNOT_SELL_PRODUCT = new Exception("Один из дистрибуторов не может реализовать продукт");
+        public static final Exception CANNOT_SELL_PRODUCT = new Exception("Дистрибутор не может реализовать продукт");
         public static final Exception PRODUCT_NOT_IN_REGION = new Exception("Продукта нет в Вашем регионе");
+        public static final Exception INCORRECT_LOGIN_OR_PASSWORD = new Exception("Введённый логин/пароль неверен");
     }
 }

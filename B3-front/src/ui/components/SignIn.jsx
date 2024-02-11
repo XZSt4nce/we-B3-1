@@ -9,13 +9,16 @@ export const SignIn = () => {
 
     const handler = (ev) => {
         ev.preventDefault();
-        signIn(ev.target[0].value);
+        const login = ev.target[0].value;
+        const password = ev.target[1].value;
+        signIn(login, password);
     }
 
     return (
         <WhiteBlock title={"Вход"}>
             <Form onSubmit={handler}>
-                <Control controlId={"login"} label={"Логин"} />
+                <Control controlId={"signInLogin"} label={"Логин"} />
+                <Control controlId={"signInPassword"} label={"Пароль"} type={"password"} />
                 <Button type={"submit"}>Войти</Button>
             </Form>
         </WhiteBlock>

@@ -1,7 +1,6 @@
 package com.wavesenterprise.app.domain;
 
 import com.google.common.hash.Hashing;
-import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -12,9 +11,9 @@ import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_RIGHTS
 public class Order {
     private String hash;
     private final String clientKey;
-    private final String organizationKey;
+    private final String executorKey;
     private final String productKey;
-    private final Integer count;
+    private final Integer amount;
     private Integer price;
     private Date deliveryDate;
     private final String deliveryAddress;
@@ -24,25 +23,25 @@ public class Order {
 
     public Order() {
         this.clientKey = null;
-        this.organizationKey = null;
+        this.executorKey = null;
         this.productKey = null;
-        this.count = null;
+        this.amount = null;
         this.deliveryAddress = null;
         this.orderCreationDate = null;
     }
 
     public Order(
-            @NotNull String clientKey,
-            @NotNull String organizationKey,
-            @NotNull String productKey,
-            @NotNull Integer count,
-            @NotNull Date deliveryDate,
-            @NotNull String deliveryAddress
+            String clientKey,
+            String executorKey,
+            String productKey,
+            Integer amount,
+            Date deliveryDate,
+            String deliveryAddress
     ) {
         this.clientKey = clientKey;
-        this.organizationKey = organizationKey;
+        this.executorKey = executorKey;
         this.productKey = productKey;
-        this.count = count;
+        this.amount = amount;
         this.deliveryDate = deliveryDate;
         this.deliveryAddress = deliveryAddress;
         this.status = OrderStatus.WAITING_FOR_EMPLOYEE;
@@ -51,13 +50,13 @@ public class Order {
     }
 
     private void updateHash() {
-        String newHash = Hashing.sha256()
+        this.hash = Hashing.sha256()
                 .hashString(
                         this.hash
                         +this.clientKey
-                        +this.organizationKey
+                        +this.executorKey
                         +this.productKey
-                        +this.count
+                        +this.amount
                         +this.price
                         +this.deliveryDate
                         +this.deliveryAddress
@@ -67,13 +66,12 @@ public class Order {
                         StandardCharsets.UTF_8
                 )
                 .toString();
-        this.hash = newHash;
     }
 
     public void clarify(
-            @NotNull Integer totalPrice,
-            @NotNull Date deliveryLimit,
-            @NotNull Boolean isPrepaymentAvailable
+            Integer totalPrice,
+            Date deliveryLimit,
+            Boolean isPrepaymentAvailable
     ) throws Exception {
         if (totalPrice < 1) {
             throw INCORRECT_DATA;
@@ -84,13 +82,8 @@ public class Order {
         updateHash();
     }
 
-    public void cancel() {
-        this.status = OrderStatus.CANCELLED;
-        updateHash();
-    }
-
-    public void confirm() {
-        this.status = OrderStatus.EXECUTING;
+    public void confirmOrCancel(boolean isConfirm) {
+        this.status = isConfirm ? OrderStatus.EXECUTING : OrderStatus.CANCELLED;
         updateHash();
     }
 
@@ -129,16 +122,16 @@ public class Order {
         return clientKey;
     }
 
-    public String getOrganizationKey() {
-        return organizationKey;
+    public String getExecutorKey() {
+        return executorKey;
     }
 
     public String getProductKey() {
         return productKey;
     }
 
-    public int getCount() {
-        return count;
+    public int getAmount() {
+        return amount;
     }
 
     public String getDeliveryAddress() {
@@ -167,5 +160,25 @@ public class Order {
 
     public Boolean getPrepaymentAvailable() {
         return isPrepaymentAvailable;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
+    public void setPrice(Integer price) {
+        this.price = price;
+    }
+
+    public void setDeliveryDate(Date deliveryDate) {
+        this.deliveryDate = deliveryDate;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public void setPrepaymentAvailable(Boolean prepaymentAvailable) {
+        isPrepaymentAvailable = prepaymentAvailable;
     }
 }

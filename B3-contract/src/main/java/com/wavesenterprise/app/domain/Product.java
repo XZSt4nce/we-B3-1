@@ -1,8 +1,7 @@
 package com.wavesenterprise.app.domain;
 
-import org.jetbrains.annotations.NotNull;
-
 public class Product {
+    private final String mader;
     private final String title;
     private String description;
     private String[] regions;
@@ -12,14 +11,17 @@ public class Product {
     private boolean isConfirmed;
 
     public Product() {
+        this.mader = null;
         this.title = null;
     }
 
     public Product(
-            @NotNull String title,
-            @NotNull String description,
-            @NotNull String[] regions
+            String sender,
+            String title,
+            String description,
+            String[] regions
     ) {
+        this.mader = sender;
         this.title = title;
         this.description = description;
         this.regions = regions;
@@ -27,11 +29,11 @@ public class Product {
     }
 
     public void confirm(
-            @NotNull String description,
-            @NotNull String[] regions,
-            @NotNull Integer minOrderCount,
-            @NotNull Integer maxOrderCount,
-            @NotNull String[] distributors
+            String description,
+            String[] regions,
+            Integer minOrderCount,
+            Integer maxOrderCount,
+            String[] distributors
     ) {
         this.description = description;
         this.regions = regions;
@@ -87,5 +89,21 @@ public class Product {
 
     public boolean isConfirmed() {
         return isConfirmed;
+    }
+
+    public String getMader() {
+        return mader;
+    }
+
+    public void setMinOrderCount(Integer minOrderCount) {
+        this.minOrderCount = minOrderCount;
+    }
+
+    public void setMaxOrderCount(Integer maxOrderCount) {
+        this.maxOrderCount = maxOrderCount;
+    }
+
+    public void setConfirmed(boolean confirmed) {
+        isConfirmed = confirmed;
     }
 }

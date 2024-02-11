@@ -19,7 +19,7 @@ export const Layout = ({children}) => {
                     {!!user.login && <Button variant={"danger"} onClick={signOut}>Выход</Button>}
                 </div>
             </Navbar>
-            <div className={"d-flex flex-column flex-grow-1 align-items-center p-3 gap-3"}>
+            <div className={"d-flex flex-column flex-grow-1 align-items-center p-3 gap-3 overflow-auto"}>
                 {children}
             </div>
         </div>

@@ -5,7 +5,7 @@ import {Errors} from "../constants/Errors";
 
 export const Context = createContext({});
 export const ContextWrapper = ({children}) => {
-    const contractAddress = "5hEEZg4uimrq8R1shaFZxEWqq3wXAbGz1dWrHnCv9Suq";
+    const contractAddress = "JD2pdkVbrTZZvt1FcbNk5YwHZrborTSqARMevUp8zEjv";
     const [contractVersion, setContractVersion] = useState(1);
     const [user, setUser] = useState({});
     const [users, setUsers] = useState({});
@@ -34,11 +34,11 @@ export const ContextWrapper = ({children}) => {
         setEmployees(getMappingObjects(data, ContractKeys.EMPLOYEES_MAPPING_PREFIX));
     };
 
-    const signUpSupplier = async (login, title, description, fullName, email, regions, organizationKey) => {
+    const signUp = async (login, title, description, fullName, email, regions, organizationKey) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
-                "value": "signUpSupplier",
+                "value": "signUp",
                 "key": "action"
             },
             {
@@ -82,76 +82,6 @@ export const ContextWrapper = ({children}) => {
                     await Service.get(`contracts/${contractAddress}/`)
                 }
             });
-    };
-
-    const signUpDistributor = async (login, title, fullName, email, regions, organizationKey) => {
-        await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "signUpDistributor",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": login,
-                "key": "login"
-            },
-            {
-                "type": "string",
-                "value": title,
-                "key": "title"
-            },
-            {
-                "type": "string",
-                "value": fullName,
-                "key": "fullName"
-            },
-            {
-                "type": "string",
-                "value": email,
-                "key": "email"
-            },
-            {
-                "type": "string",
-                "value": regions.toString(),
-                "key": "regions"
-            },
-            {
-                "type": "string",
-                "value": organizationKey,
-                "key": "organizationKey"
-            }
-        ], contractAddress, contractVersion);
-    };
-
-    const signUpClient = async (login, fullName, email, region) => {
-        await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "signUpDistributor",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": login,
-                "key": "login"
-            },
-            {
-                "type": "string",
-                "value": fullName,
-                "key": "fullName"
-            },
-            {
-                "type": "string",
-                "value": email,
-                "key": "email"
-            },
-            {
-                "type": "string",
-                "value": region,
-                "key": "regions"
-            }
-        ], contractAddress, contractVersion);
     };
 
     const activateUser = async (sender, userPublicKey, description, fullName, email, regions) => {
@@ -481,9 +411,7 @@ export const ContextWrapper = ({children}) => {
         orders,
         employees,
         getContractValues,
-        signUpSupplier,
-        signUpDistributor,
-        signUpClient,
+        signUp,
         activateUser,
         signIn,
         signOut,
