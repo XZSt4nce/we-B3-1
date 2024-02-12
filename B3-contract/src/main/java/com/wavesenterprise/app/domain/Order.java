@@ -12,20 +12,20 @@ public class Order {
     private String hash;
     private final String clientKey;
     private final String executorKey;
-    private final String productKey;
-    private final Integer amount;
+    private final int productKey;
+    private final int amount;
     private Integer price;
     private Date deliveryDate;
     private final String deliveryAddress;
     private final Date orderCreationDate;
     private OrderStatus status;
-    private Boolean isPrepaymentAvailable;
+    private boolean isPrepaymentAvailable;
 
     public Order() {
         this.clientKey = null;
         this.executorKey = null;
-        this.productKey = null;
-        this.amount = null;
+        this.productKey = 0;
+        this.amount = 0;
         this.deliveryAddress = null;
         this.orderCreationDate = null;
     }
@@ -33,8 +33,8 @@ public class Order {
     public Order(
             String clientKey,
             String executorKey,
-            String productKey,
-            Integer amount,
+            int productKey,
+            int amount,
             Date deliveryDate,
             String deliveryAddress
     ) {
@@ -71,7 +71,7 @@ public class Order {
     public void clarify(
             Integer totalPrice,
             Date deliveryLimit,
-            Boolean isPrepaymentAvailable
+            boolean isPrepaymentAvailable
     ) throws Exception {
         if (totalPrice < 1) {
             throw INCORRECT_DATA;
@@ -126,9 +126,7 @@ public class Order {
         return executorKey;
     }
 
-    public String getProductKey() {
-        return productKey;
-    }
+    public int getProductKey() { return productKey; }
 
     public int getAmount() {
         return amount;
@@ -158,7 +156,7 @@ public class Order {
         return hash;
     }
 
-    public Boolean getPrepaymentAvailable() {
+    public boolean getPrepaymentAvailable() {
         return isPrepaymentAvailable;
     }
 
@@ -178,7 +176,7 @@ public class Order {
         this.status = status;
     }
 
-    public void setPrepaymentAvailable(Boolean prepaymentAvailable) {
+    public void setPrepaymentAvailable(boolean prepaymentAvailable) {
         isPrepaymentAvailable = prepaymentAvailable;
     }
 }

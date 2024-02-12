@@ -5,13 +5,11 @@ import com.wavesenterprise.app.api.IContract;
 import com.wavesenterprise.app.domain.*;
 import com.wavesenterprise.sdk.contract.api.annotation.ContractHandler;
 import com.wavesenterprise.sdk.contract.api.state.ContractState;
+import com.wavesenterprise.sdk.contract.api.state.TypeReference;
 import com.wavesenterprise.sdk.contract.api.state.mapping.Mapping;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.*;
 import static com.wavesenterprise.app.api.IContract.Keys.*;
@@ -20,17 +18,17 @@ import static com.wavesenterprise.app.api.IContract.Keys.*;
 public class Contract implements IContract {
     private final ContractState contractState; // Хранит все значения контракта
     private final Mapping<User> userMapping; // Хранит всех пользователей
-    private final Mapping<Order> orderMapping; // Хранит все заказы
-    private final Mapping<Product> productMapping; // Хранит все продукты
-    private final Mapping<Organization> organizationMapping; // Хранит все организации
+    private List<Order> orderList = new ArrayList<>(); // Хранит все заказы
+    private List<Product> productList = new ArrayList<>(); // Хранит все продукты
+    private List<Organization> organizationList = new ArrayList<>(); // Хранит все организации
 
 
     public Contract(ContractState contractState) {
         this.contractState = contractState;
         this.userMapping = contractState.getMapping(User.class, USERS_MAPPING_PREFIX);
-        this.orderMapping = contractState.getMapping(Order.class, ORDERS_MAPPING_PREFIX);
-        this.productMapping = contractState.getMapping(Product.class, PRODUCTS_MAPPING_PREFIX);
-        this.organizationMapping = contractState.getMapping(Organization.class, ORGANIZATIONS_MAPPING_PREFIX);
+        this.contractState.put(ORDERS_LIST, orderList);
+        this.contractState.put(PRODUCTS_LIST, productList);
+        this.contractState.put(ORGANIZATIONS_LIST, organizationList);
     }
 
     /*
@@ -45,22 +43,21 @@ public class Contract implements IContract {
         String organizationTitle = "Profi";
         String organizationDescription = "Разработка решений с использованием блочейн технологий";
         this.contractState.put(OPERATOR, login);
-        this.contractState.put(LAST_PRODUCT_ID, 0);
-        this.contractState.put(LAST_ORDER_ID, 0);
-        this.contractState.put(LAST_ORGANIZATION_ID, 1);
         Organization organization = new Organization(
                 login,
+                organizationTitle,
                 organizationDescription,
                 UserRole.DISTRIBUTOR
         );
-        organizationMapping.put("0", organization);
+        organizationList.add(organization);
+        contractState.put(ORGANIZATIONS_LIST, organizationList);
         User operator = new User(
                 login,
                 hashPassword(login, password),
                 "admin",
                 "admin@adm.in",
                 new String[]{"США", "Индия", "Япония"},
-                organizationTitle,
+                0,
                 UserRole.OPERATOR
         );
         userMapping.put(login, operator);
@@ -76,7 +73,7 @@ public class Contract implements IContract {
             String fullName,
             String email,
             String[] regions,
-            String organizationKey
+            Integer organizationKey
     ) throws Exception {
         notSignedUp(login); // Проверка, что пользователя с таким логином нет в системе
         UserRole role = UserRole.CLIENT;
@@ -88,21 +85,20 @@ public class Contract implements IContract {
             Organization organization = organizationExist(organizationKey);
             role = organization.getRole();
         } else if (isPresent(title)) {
-            if (isPresent(organizationKey)) {
-                throw INCORRECT_DATA;
-            } else if (isPresent(description)) {
+            if (isPresent(description)) {
                 role = UserRole.SUPPLIER;
             } else {
                 role = UserRole.DISTRIBUTOR;
             }
-            int lastOrganizationId = contractState.get(LAST_ORGANIZATION_ID, int.class);
             Organization organization = new Organization(
                     login,
+                    title,
                     description,
                     role
             );
-            organizationMapping.put(String.valueOf(lastOrganizationId), organization);
-            contractState.put(LAST_ORGANIZATION_ID, lastOrganizationId + 1);
+            organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
+            organizationList.add(organization);
+            contractState.put(ORGANIZATIONS_LIST, organizationList);
         } else if (isPresent(description)) {
             throw INCORRECT_DATA;
         }
@@ -147,11 +143,13 @@ public class Contract implements IContract {
 
         {
             // Если пользователь указывал ключ организации, то добавить ключ пользователя к списку сотрудников организации
-            String organizationKey = user.getOrganizationKey();
+            Integer organizationKey = user.getOrganizationKey();
             if (isPresent(organizationKey)) {
-                Organization organization = organizationMapping.get(organizationKey);
+                Organization organization = organizationExist(organizationKey);
                 organization.addEmployee(userPublicKey);
-                organizationMapping.put(organizationKey, organization);
+                organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
+                organizationList.set(organizationKey, organization);
+                contractState.put(ORGANIZATIONS_LIST, organizationList);
             }
         }
 
@@ -188,12 +186,12 @@ public class Contract implements IContract {
             String description,
             String[] regions
     ) throws Exception {
-        userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
+        User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyRole(sender, UserRole.SUPPLIER); // Выполнять метод может только поставщик
-        productNotCreated(title); // Проверка на то, что такого продукта ещё нет в системе
-        int lastProductId = contractState.get(LAST_PRODUCT_ID, int.class);
-        productMapping.put(String.valueOf(lastProductId), new Product(sender, title, description, regions)); // Добавление продукта в систему
-        contractState.put(LAST_PRODUCT_ID, lastProductId + 1);
+        productList = contractState.get(PRODUCTS_LIST, new TypeReference<List<Product>>() {});
+        user.addProductProvided(productList.size());
+        productList.add(new Product(sender, title, description, regions)); // Добавление продукта в систему
+        contractState.put(PRODUCTS_LIST, productList);
     }
 
     // Метод подтверждения карточки продукта
@@ -201,7 +199,7 @@ public class Contract implements IContract {
     public void confirmProduct(
             String sender,
             String password,
-            String productKey,
+            int productKey,
             String description,
             String[] regions,
             int minOrderCount,
@@ -220,14 +218,7 @@ public class Contract implements IContract {
         // Проверка на то, существуют ли дистрибуторы и могут ли они реализовать продукт в регионах, в которых он производится
         for (String distributor : distributors) {
             User userDistributor = userExist(distributor);
-            List<String> distributorRegions = Arrays.asList(userMapping.get(distributor).getRegions());
-            if (distributorRegions
-                    .stream()
-                    .filter(Arrays.asList(regions)::contains).toList()
-                    .isEmpty()
-            ) {
-                throw CANNOT_SELL_PRODUCT;
-            }
+            haveRegion(distributor, regions);
             userDistributor.addProductProvided(productKey);
             userMapping.put(distributor, userDistributor);
         }
@@ -242,7 +233,9 @@ public class Contract implements IContract {
         regions = isPresent(regions) ? regions : product.getRegions();
 
         product.confirm(description, regions, minOrderCount, maxOrderCount, distributors); // Подтверждение продукта
-        productMapping.put(productKey, product); // Обновление продукта в системе
+        productList = contractState.get(PRODUCTS_LIST, new TypeReference<List<Product>>() {});
+        productList.set(productKey, product); // Обновление продукта в системе
+        contractState.put(PRODUCTS_LIST, productList);
     }
 
     // Метод создания заказа
@@ -250,7 +243,7 @@ public class Contract implements IContract {
     public void makeOrder(
             String sender,
             String password,
-            String productKey,
+            int productKey,
             String executorKey,
             int count,
             Date desiredDeliveryLimit,
@@ -259,7 +252,7 @@ public class Contract implements IContract {
         User user = userHaveAccess(sender, password);
         userExist(executorKey);
         Product product = productExist(productKey);
-        haveProductRegion(sender, productKey);
+        haveRegion(sender, product.getRegions());
 
         if (count == 0) {
             throw INCORRECT_DATA;
@@ -282,9 +275,9 @@ public class Contract implements IContract {
 
         // Создание заказа и запись в систему
         Order order = new Order(sender, executorKey, productKey, count, desiredDeliveryLimit, deliveryAddress);
-        int lastOrderId = contractState.get(LAST_ORDER_ID, Integer.class);
-        orderMapping.put(String.valueOf(lastOrderId), order);
-        contractState.put(LAST_ORDER_ID, lastOrderId + 1);
+        orderList = contractState.get(ORDERS_LIST, new TypeReference<List<Order>>() {});
+        orderList.add(order);
+        contractState.put(ORDERS_LIST, orderList);
     }
 
     // Метод уточнения данных заказа
@@ -292,10 +285,10 @@ public class Contract implements IContract {
     public void clarifyOrder(
             String sender,
             String password,
-            String orderKey,
+            int orderKey,
             int totalPrice,
             Date deliveryLimit,
-            Boolean isPrepaymentAvailable
+            boolean isPrepaymentAvailable
     ) throws Exception {
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
@@ -304,7 +297,7 @@ public class Contract implements IContract {
         // Если организацией (или её сотрудником) была изменена дата доставки, то перезаписать её
         deliveryLimit = isPresent(deliveryLimit) ? deliveryLimit : order.getDeliveryDate();
         order.clarify(totalPrice, deliveryLimit, isPrepaymentAvailable); // Уточнение данных
-        orderMapping.put(orderKey, order); // Обновление заказа в системе
+        orderList.set(orderKey, order); // Обновление заказа в системе
     }
 
     // Метод для подтверждения или отказа от заказа
@@ -312,8 +305,8 @@ public class Contract implements IContract {
     public void confirmOrCancelOrder(
             String sender,
             String password,
-            String orderKey,
-            Boolean isConfirm
+            int orderKey,
+            boolean isConfirm
     ) throws Exception {
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
@@ -324,7 +317,7 @@ public class Contract implements IContract {
             throw NOT_ENOUGH_FUNDS;
         }
         order.confirmOrCancel(isConfirm);
-        orderMapping.put(orderKey, order); // Обновление заказа в системе
+        orderList.set(orderKey, order); // Обновление заказа в системе
     }
 
     // Метод оплаты заказа (до или после выполнения)
@@ -332,7 +325,7 @@ public class Contract implements IContract {
     public void payOrder(
             String sender,
             String password,
-            String orderKey
+            int orderKey
     ) throws Exception {
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
@@ -340,7 +333,7 @@ public class Contract implements IContract {
         // Оплата заказа
         transferMoney(sender, order.getExecutorKey(), order.getPrice());
         order.pay();
-        orderMapping.put(orderKey, order); // Обновление заказа в системе
+        orderList.set(orderKey, order); // Обновление заказа в системе
     }
 
     // Метод выполнения заказа
@@ -348,11 +341,11 @@ public class Contract implements IContract {
     public void completeOrder(
             String sender,
             String password,
-            String orderKey
+            int orderKey
     ) throws Exception {
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
+        Order order = orderExist(orderKey);
         onlyExecutor(sender, orderKey); // Вызвать метод может только исполнитель, у которого был совершён заказ
-        Order order = orderMapping.get(orderKey);
         {
             // Удаление продукта(-ов) у исполнителя
             User executor = userMapping.get(order.getExecutorKey());
@@ -360,7 +353,7 @@ public class Contract implements IContract {
             userMapping.put(order.getExecutorKey(), executor);
         }
         order.complete(); // Выполнение заказа
-        orderMapping.put(orderKey, order); // Обновление заказа в системе
+        orderList.set(orderKey, order); // Обновление заказа в системе
     }
 
     // Метод получения заказа
@@ -368,19 +361,19 @@ public class Contract implements IContract {
     public void takeOrder(
             String sender,
             String password,
-            String orderKey
+            int orderKey
     ) throws Exception {
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
+        Order order = orderExist(orderKey);
         onlyClient(sender, orderKey); // Вызвать метод может только клиент, который привязан к заказу
         onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_TAKING); // Чтобы забрать продукта, заказ должен быть готов
-        Order order = orderMapping.get(orderKey);
         {
             // Добавление продукта(-ов) клиенту
             user.incProduct(order.getProductKey(), order.getAmount());
             userMapping.put(order.getClientKey(), user);
         }
         order.take(); // Получение заказа
-        orderMapping.put(orderKey, order);
+        orderList.set(orderKey, order);
     }
 
     /*
@@ -401,9 +394,10 @@ public class Contract implements IContract {
         return user;
     }
 
-    private Organization organizationExist(String organizationKey) throws Exception {
+    private Organization organizationExist(Integer organizationKey) throws Exception {
         try {
-            return organizationMapping.get(organizationKey);
+            organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
+            return organizationList.get(organizationKey);
         } catch (Exception e) {
             throw ORGANIZATION_NOT_FOUND;
         }
@@ -425,27 +419,27 @@ public class Contract implements IContract {
 
     private void onlyRole(String userPublicKey, UserRole role) throws Exception {
         UserRole userRole = userExist(userPublicKey).getRole();
-        if (userRole != role && role != UserRole.DISTRIBUTOR && userRole != UserRole.OPERATOR) {
+        if (userRole != role && (role != UserRole.DISTRIBUTOR || userRole != UserRole.OPERATOR)) {
             throw NOT_ENOUGH_RIGHTS;
         }
     }
 
-    private Order orderExist(String orderKey) throws Exception {
+    private Order orderExist(int orderKey) throws Exception {
         try {
-            return orderMapping.get(orderKey);
+            return orderList.get(orderKey);
         } catch (Exception e) {
             throw ORDER_NOT_FOUND;
         }
     }
 
-    private void onlyOrderStatus(String orderKey, OrderStatus status) throws Exception {
+    private void onlyOrderStatus(int orderKey, OrderStatus status) throws Exception {
         Order order = orderExist(orderKey);
         if (order.getStatus() != status) {
             throw NOT_ENOUGH_RIGHTS;
         }
     }
 
-    private void onlyClient(String userPublicKey, String orderKey) throws Exception {
+    private void onlyClient(String userPublicKey, int orderKey) throws Exception {
         Order order = orderExist(orderKey);
         String clientKey = order.getClientKey();
         if (!Objects.equals(userPublicKey, clientKey)) {
@@ -453,7 +447,7 @@ public class Contract implements IContract {
         }
     }
 
-    private void onlyExecutor(String userPublicKey, String orderKey) throws Exception {
+    private void onlyExecutor(String userPublicKey, int orderKey) throws Exception {
         Order order = orderExist(orderKey);
         String executorKey = order.getExecutorKey();
         if (!Objects.equals(userPublicKey, executorKey)) {
@@ -461,15 +455,9 @@ public class Contract implements IContract {
         }
     }
 
-    private void productNotCreated(String productKey) throws Exception {
-        if (productMapping.has(productKey)) {
-            throw PRODUCT_ALREADY_EXIST;
-        }
-    }
-
-    private Product productExist(String productKey) throws Exception {
+    private Product productExist(int productKey) throws Exception {
         try {
-            return productMapping.get(productKey);
+            return productList.get(productKey);
         } catch (Exception e) {
             throw PRODUCT_NOT_FOUND;
         }
@@ -505,20 +493,19 @@ public class Contract implements IContract {
         return Hashing.sha256().hashString(login + password, StandardCharsets.UTF_8).toString();
     }
 
-    private void haveProductRegion(String userPublicKey, String productKey) throws Exception {
+    private void haveRegion(String userPublicKey, String[] regions) throws Exception {
         String[] userRegions = userMapping.get(userPublicKey).getRegions();
-        List<String> productRegions = Arrays.stream(productMapping.get(productKey).getRegions()).toList();
-        if (productRegions
-                .stream()
-                .filter(Arrays.asList(userRegions)::contains).toList()
+        List<String> productRegions = Arrays.stream(regions).toList();
+        if (Arrays.stream(userRegions)
+                .filter(productRegions::contains).toList()
                 .isEmpty()
         ) {
-            throw PRODUCT_NOT_IN_REGION;
+            throw INCORRECT_DATA_REGIONS;
         }
     }
 
-    private void approvedDistributor(String distributorKey, String productKey) throws Exception {
-        if (!Arrays.asList(productMapping.get(productKey).getDistributors()).contains(distributorKey)) {
+    private void approvedDistributor(String distributorKey, int productKey) throws Exception {
+        if (!Arrays.asList(productList.get(productKey).getDistributors()).contains(distributorKey)) {
             throw CANNOT_SELL_PRODUCT;
         }
     }

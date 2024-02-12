@@ -2,16 +2,17 @@ import React, {createContext, useState} from 'react';
 import Service from "../service/Service";
 import {ContractKeys} from "../constants/ContractKeys";
 import {Errors} from "../constants/Errors";
+import contractAddress from "../../../contractAddress.json";
 
 export const Context = createContext({});
 export const ContextWrapper = ({children}) => {
-    const contractAddress = "JD2pdkVbrTZZvt1FcbNk5YwHZrborTSqARMevUp8zEjv";
     const [contractVersion, setContractVersion] = useState(1);
     const [user, setUser] = useState({});
+    const [password, setPassword] = useState("");
     const [users, setUsers] = useState({});
-    const [products, setProducts] = useState({});
-    const [orders, setOrders] = useState({});
-    const [employees, setEmployees] = useState({});
+    const [products, setProducts] = useState([]);
+    const [orders, setOrders] = useState([]);
+    const [organizations, setOrganizations] = useState([]);
 
     const getContractValues = async () => {
         const contracts = await Service.get(`contracts`);
@@ -29,12 +30,12 @@ export const ContextWrapper = ({children}) => {
         });
 
         setUsers(getMappingObjects(data, ContractKeys.USERS_MAPPING_PREFIX));
-        setProducts(getMappingObjects(data, ContractKeys.PRODUCTS_MAPPING_PREFIX));
-        setOrders(getMappingObjects(data, ContractKeys.ORDERS_MAPPING_PREFIX));
-        setEmployees(getMappingObjects(data, ContractKeys.EMPLOYEES_MAPPING_PREFIX));
+        setProducts(getListObjects(data[ContractKeys.PRODUCTS_LIST]));
+        setOrders(getListObjects(data[ContractKeys.ORDERS_LIST]));
+        setOrganizations(getListObjects(data[ContractKeys.ORGANIZATIONS_LIST]));
     };
 
-    const signUp = async (login, title, description, fullName, email, regions, organizationKey) => {
+    const signUp = async (login, password, title, description, fullName, email, regions, organizationKey) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -48,6 +49,11 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
+                "value": password,
+                "key": "password"
+            },
+            {
+                "type": "string",
                 "value": title,
                 "key": "title"
             },
@@ -72,19 +78,14 @@ export const ContextWrapper = ({children}) => {
                 "key": "regions"
             },
             {
-                "type": "string",
+                "type": "integer",
                 "value": organizationKey,
                 "key": "organizationKey"
             }
-        ],  contractAddress, contractVersion)
-            .then(async (data) => {
-                if (data) {
-                    await Service.get(`contracts/${contractAddress}/`)
-                }
-            });
+        ],  contractAddress, contractVersion);
     };
 
-    const activateUser = async (sender, userPublicKey, description, fullName, email, regions) => {
+    const activateUser = async (userPublicKey, description, fullName, email, regions) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -93,8 +94,13 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
+            },
+            {
+                "type": "string",
+                "value": password,
+                "key": "password"
             },
             {
                 "type": "string",
@@ -124,10 +130,15 @@ export const ContextWrapper = ({children}) => {
         ], contractAddress, contractVersion);
     };
 
-    const signIn = (login) => {
+    const signIn = async (login, password) => {
         const key = `${ContractKeys.USERS_MAPPING_PREFIX}_${login}`;
         if (Object.keys(users).includes(key)) {
-            setUser(users[key]);
+            if (users[key].password === await sha256(login + password)) {
+                setUser(users[key]);
+                setPassword(password);
+            } else {
+                alert(Errors.INCORRECT_LOGIN);
+            }
         } else {
             alert(Errors.INCORRECT_LOGIN);
         }
@@ -135,9 +146,10 @@ export const ContextWrapper = ({children}) => {
 
     const signOut = () => {
         setUser({});
+        setPassword("");
     };
 
-    const blockUser = async (sender, userPublicKey) => {
+    const blockUser = async (userPublicKey) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -146,8 +158,13 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
+            },
+            {
+                "type": "string",
+                "value": password,
+                "key": "password"
             },
             {
                 "type": "string",
@@ -157,7 +174,7 @@ export const ContextWrapper = ({children}) => {
         ], contractAddress, contractVersion);
     };
 
-    const createProduct = async (sender, title, description, regions) => {
+    const createProduct = async (title, description, regions) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -166,8 +183,13 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
+            },
+            {
+                "type": "string",
+                "value": password,
+                "key": "password"
             },
             {
                 "type": "string",
@@ -187,7 +209,7 @@ export const ContextWrapper = ({children}) => {
         ], contractAddress, contractVersion);
     };
 
-    const confirmProduct = async (sender, productKey, description, regions, minOrderCount, maxOrderCount, distributors) => {
+    const confirmProduct = async (productKey, description, regions, minOrderCount, maxOrderCount, distributors) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -196,8 +218,18 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
+            },
+            {
+                "type": "string",
+                "value": password,
+                "key": "password"
+            },
+            {
+                "type": "integer",
+                "value": productKey,
+                "key": "productKey"
             },
             {
                 "type": "string",
@@ -227,7 +259,7 @@ export const ContextWrapper = ({children}) => {
         ], contractAddress, contractVersion);
     };
 
-    const makeOrder = async (sender, productKey, organization, count, desiredDeliveryLimit, deliveryAddress) => {
+    const makeOrder = async (productKey, organization, count, desiredDeliveryLimit, deliveryAddress) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -236,11 +268,16 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
             },
             {
                 "type": "string",
+                "value": password,
+                "key": "password"
+            },
+            {
+                "type": "integer",
                 "value": productKey,
                 "key": "productKey"
             },
@@ -267,7 +304,7 @@ export const ContextWrapper = ({children}) => {
         ], contractAddress, contractVersion);
     };
 
-    const clarifyOrder = async (sender, orderKey, totalPrice, deliveryLimitUnixTime, isPrepaymentAvailable) => {
+    const clarifyOrder = async (orderKey, totalPrice, deliveryLimit, isPrepaymentAvailable) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -276,11 +313,16 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
             },
             {
                 "type": "string",
+                "value": password,
+                "key": "password"
+            },
+            {
+                "type": "integer",
                 "value": orderKey,
                 "key": "orderKey"
             },
@@ -291,8 +333,8 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "integer",
-                "value": deliveryLimitUnixTime,
-                "key": "deliveryLimitUnixTime"
+                "value": deliveryLimit,
+                "key": "deliveryLimit"
             },
             {
                 "type": "boolean",
@@ -302,7 +344,7 @@ export const ContextWrapper = ({children}) => {
         ], contractAddress, contractVersion);
     };
 
-    const confirmOrCancelOrder = async (sender, orderKey, isConfirm) => {
+    const confirmOrCancelOrder = async (orderKey, isConfirm) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -311,11 +353,16 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
             },
             {
                 "type": "string",
+                "value": password,
+                "key": "password"
+            },
+            {
+                "type": "integer",
                 "value": orderKey,
                 "key": "orderKey"
             },
@@ -327,7 +374,7 @@ export const ContextWrapper = ({children}) => {
         ], contractAddress, contractVersion);
     };
 
-    const payOrder = async (sender, orderKey) => {
+    const payOrder = async (orderKey) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -336,18 +383,23 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
             },
             {
                 "type": "string",
+                "value": password,
+                "key": "password"
+            },
+            {
+                "type": "integer",
                 "value": orderKey,
                 "key": "orderKey"
             }
         ], contractAddress, contractVersion);
     };
 
-    const completeOrder = async (sender, orderKey) => {
+    const completeOrder = async (orderKey) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -356,18 +408,23 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
             },
             {
                 "type": "string",
+                "value": password,
+                "key": "password"
+            },
+            {
+                "type": "integer",
                 "value": orderKey,
                 "key": "orderKey"
             }
         ], contractAddress, contractVersion);
     };
 
-    const takeOrder = async (sender, orderKey) => {
+    const takeOrder = async (orderKey) => {
         await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -376,25 +433,21 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": sender,
+                "value": user.login,
                 "key": "sender"
             },
             {
                 "type": "string",
+                "value": password,
+                "key": "password"
+            },
+            {
+                "type": "integer",
                 "value": orderKey,
                 "key": "orderKey"
             }
-        ], contractAddress, contractVersion)
-            .then(data => {
-                if (data) {
-                    users[getSenderKeyOrder(sender)].products.push(orderKey);
-                }
-            });
+        ], contractAddress, contractVersion);
     };
-
-    const getSenderKeyOrder = (sender) => {
-        return !users[sender].organizationKey ? sender : users[sender].organizationKey;
-    }
 
     const getMappingObjects = (data, prefix) => {
         const objectsData = {};
@@ -404,12 +457,23 @@ export const ContextWrapper = ({children}) => {
         return objectsData;
     };
 
+    const getListObjects = (list) => {
+        return list.map(el => JSON.parse(el));
+    }
+
+    const sha256 = async (passwd) => {
+        const passwdBuffer = new TextEncoder('utf-8').encode(passwd);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', passwdBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => ('00' + b.toString(16)).slice(-2)).join('');
+    }
+
     const values = {
         user,
         users,
         products,
         orders,
-        employees,
+        organizations,
         getContractValues,
         signUp,
         activateUser,
@@ -423,7 +487,8 @@ export const ContextWrapper = ({children}) => {
         confirmOrCancelOrder,
         payOrder,
         completeOrder,
-        takeOrder
+        takeOrder,
+        sha256
     };
 
     return (

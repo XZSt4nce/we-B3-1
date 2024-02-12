@@ -15,18 +15,20 @@ public class User {
     private String fullName;
     private String email;
     private String[] regions;
-    private final List<String> productsProvided;
-    private final Map<String, Integer> products;
+    private final List<Integer> productsProvided;
+    private final Map<Integer, Integer> products;
+    private final List<Integer> orders;
     private final UserRole role;
     private boolean isActivated;
     private boolean isBlocked;
-    private final String organizationKey;
+    private final Integer organizationKey;
 
     public User() {
         this.login = null;
         this.password = null;
         this.productsProvided = new ArrayList<>();
         this.products = new HashMap<>();
+        this.orders = null;
         this.role = null;
         this.organizationKey = null;
     }
@@ -37,7 +39,7 @@ public class User {
             String fullName,
             String email,
             String[] regions,
-            String organizationKey,
+            int organizationKey,
             UserRole role
     ) {
         this.login = login;
@@ -48,6 +50,7 @@ public class User {
         this.regions = regions;
         this.productsProvided = new ArrayList<>();
         this.products = new HashMap<>();
+        this.orders = new ArrayList<>();
         this.isBlocked = false;
         this.isActivated = role == UserRole.OPERATOR;
         this.role = role;
@@ -108,7 +111,7 @@ public class User {
         return isActivated;
     }
 
-    public String getOrganizationKey() {
+    public Integer getOrganizationKey() {
         return organizationKey;
     }
 
@@ -124,16 +127,16 @@ public class User {
         this.regions = regions;
     }
 
-    public Map<String, Integer> getProducts() {
+    public Map<Integer, Integer> getProducts() {
         return products;
     }
 
-    public void incProduct(String productKey, int count) {
+    public void incProduct(Integer productKey, int count) {
         int newCount = this.products.getOrDefault(productKey, 0) + count;
         this.products.put(productKey, newCount);
     }
 
-    public void decProduct(String productKey, int count) throws Exception {
+    public void decProduct(Integer productKey, int count) throws Exception {
         int newCount = this.products.getOrDefault(productKey, 0) - count;
         if (newCount < 0) {
             throw NOT_ENOUGH_PRODUCTS;
@@ -161,11 +164,20 @@ public class User {
         this.balance = balance;
     }
 
-    public List<String> getProductsProvided() {
+    public List<Integer> getProductsProvided() {
         return productsProvided;
     }
 
-    public void addProductProvided(String productKey) {
+    public void addProductProvided(int productKey) {
         productsProvided.add(productKey);
+    }
+
+    public List<Integer> getOrders() {
+        return orders;
+    }
+
+    public void addOrder(int orderKey) {
+        assert orders != null;
+        orders.add(orderKey);
     }
 }

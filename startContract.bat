@@ -29,4 +29,4 @@ FOR /F "tokens=2 delims=: " %%a IN ('curl -s -X POST "http://localhost:6882/tran
 FOR /F delims^=^"^ tokens^=1 %%a IN (%contract address%) DO (
     SET contract address=%%a
 )
-ECHO %contract address%
+ECHO {contractAddress:"%contract address%"} > contractAddress.json

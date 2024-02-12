@@ -1,6 +1,7 @@
 import React, {useContext, useEffect} from 'react';
 import {Context} from "../../core/ContextWrapper";
 import {useHistory} from "react-router-dom/cjs/react-router-dom";
+import {Profile} from "../components/Profile";
 
 const MarketPage = () => {
     const {user} = useContext(Context);
@@ -14,7 +15,7 @@ const MarketPage = () => {
 
     return (
         <>
-            
+           <Profile />
         </>
     );
 };
