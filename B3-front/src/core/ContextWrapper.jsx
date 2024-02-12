@@ -2,7 +2,7 @@ import React, {createContext, useState} from 'react';
 import Service from "../service/Service";
 import {ContractKeys} from "../constants/ContractKeys";
 import {Errors} from "../constants/Errors";
-import contractAddress from "../../../contractAddress.json";
+import {contractAddress} from "../constants/contractAddress.js";
 
 export const Context = createContext({});
 export const ContextWrapper = ({children}) => {
@@ -30,9 +30,9 @@ export const ContextWrapper = ({children}) => {
         });
 
         setUsers(getMappingObjects(data, ContractKeys.USERS_MAPPING_PREFIX));
-        setProducts(getListObjects(data[ContractKeys.PRODUCTS_LIST]));
-        setOrders(getListObjects(data[ContractKeys.ORDERS_LIST]));
-        setOrganizations(getListObjects(data[ContractKeys.ORGANIZATIONS_LIST]));
+        setProducts(data[ContractKeys.PRODUCTS_LIST]);
+        setOrders(data[ContractKeys.ORDERS_LIST]);
+        setOrganizations(data[ContractKeys.ORGANIZATIONS_LIST]);
     };
 
     const signUp = async (login, password, title, description, fullName, email, regions, organizationKey) => {
@@ -456,10 +456,6 @@ export const ContextWrapper = ({children}) => {
             .forEach(key => objectsData[key] = data[key]);
         return objectsData;
     };
-
-    const getListObjects = (list) => {
-        return list.map(el => JSON.parse(el));
-    }
 
     const sha256 = async (passwd) => {
         const passwdBuffer = new TextEncoder('utf-8').encode(passwd);
