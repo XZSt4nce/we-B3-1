@@ -4,8 +4,6 @@ import com.wavesenterprise.sdk.contract.api.annotation.ContractAction;
 import com.wavesenterprise.sdk.contract.api.annotation.ContractInit;
 import com.wavesenterprise.sdk.contract.api.annotation.InvokeParam;
 
-import java.util.Date;
-
 public interface IContract {
     @ContractInit
     void init();
@@ -67,7 +65,7 @@ public interface IContract {
             @InvokeParam (name = "productKey") int productKey,
             @InvokeParam (name = "organization") String organization,
             @InvokeParam (name = "count") int count,
-            @InvokeParam (name = "desiredDeliveryLimit") Date desiredDeliveryLimit,
+            @InvokeParam (name = "desiredDeliveryLimit") long desiredDeliveryLimit,
             @InvokeParam (name = "deliveryAddress") String deliveryAddress
     ) throws Exception;
 
@@ -77,7 +75,7 @@ public interface IContract {
             @InvokeParam (name = "password") String password,
             @InvokeParam (name = "orderKey") int orderKey,
             @InvokeParam (name = "totalPrice") int totalPrice,
-            @InvokeParam (name = "deliveryLimit") Date deliveryLimit,
+            @InvokeParam (name = "deliveryLimit") long deliveryLimit,
             @InvokeParam (name = "isPrepaymentAvailable") boolean isPrepaymentAvailable
     ) throws Exception;
 
@@ -128,7 +126,7 @@ public interface IContract {
         public static final Exception USER_IS_BLOCKED = new Exception("Пользователь заблокирован");
         public static final Exception USER_IS_NOT_ACTIVATED = new Exception("Пользователь не активирован");
         public static final Exception PRODUCT_NOT_FOUND = new Exception("Продукт не найдён");
-        public static final Exception NOT_ENOUGH_PRODUCTS = new Exception("У организации недостаточно продукта");
+        public static final Exception NOT_ENOUGH_PRODUCTS = new Exception("У исполнителя недостаточно продукта");
         public static final Exception INCORRECT_DATA = new Exception("Введены некорректные данные");
         public static final Exception TOO_FEW_PRODUCTS = new Exception("Слишком мало продуктов заказано");
         public static final Exception TOO_MANY_PRODUCTS = new Exception("Слишком много продуктов заказано");

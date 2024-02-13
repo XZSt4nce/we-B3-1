@@ -7,9 +7,9 @@ export const Control = (
         label,
         max,
         onChange,
+        min,
         type = "text",
         step = 1,
-        min = 0,
         placeholder = `Введите Ваш ${label.toLowerCase()}`,
         required = true
     }
@@ -17,7 +17,7 @@ export const Control = (
     return (
         <Form.Group controlId={controlId} className={"mb-3"}>
             <Form.Label>{label}{required && "*"}</Form.Label>
-            <Form.Control type={type} min={min} max={max} step={step} required={required} placeholder={placeholder} onChange={onChange} />
+            <Form.Control type={type} min={min ?? 0} max={max} step={step} required={required} placeholder={placeholder} onChange={onChange} />
         </Form.Group>
     );
 };

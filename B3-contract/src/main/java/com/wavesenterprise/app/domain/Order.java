@@ -15,7 +15,7 @@ public class Order {
     private final int productKey;
     private final int amount;
     private Integer price;
-    private Date deliveryDate;
+    private long deliveryDate;
     private final String deliveryAddress;
     private final Date orderCreationDate;
     private OrderStatus status;
@@ -35,7 +35,7 @@ public class Order {
             String executorKey,
             int productKey,
             int amount,
-            Date deliveryDate,
+            long deliveryDate,
             String deliveryAddress
     ) {
         this.clientKey = clientKey;
@@ -70,7 +70,7 @@ public class Order {
 
     public void clarify(
             Integer totalPrice,
-            Date deliveryLimit,
+            long deliveryLimit,
             boolean isPrepaymentAvailable
     ) throws Exception {
         if (totalPrice < 1) {
@@ -102,7 +102,7 @@ public class Order {
     }
 
     public void complete() throws Exception {
-        this.deliveryDate = new Date();
+        this.deliveryDate = new Date().getTime();
         if (this.status == OrderStatus.EXECUTING) {
             this.status = OrderStatus.WAITING_FOR_PAYMENT;
         } else if (this.status == OrderStatus.EXECUTING_PAID) {
@@ -140,7 +140,7 @@ public class Order {
         return orderCreationDate;
     }
 
-    public Date getDeliveryDate() {
+    public long getDeliveryDate() {
         return deliveryDate;
     }
 
@@ -168,7 +168,7 @@ public class Order {
         this.price = price;
     }
 
-    public void setDeliveryDate(Date deliveryDate) {
+    public void setDeliveryDate(long deliveryDate) {
         this.deliveryDate = deliveryDate;
     }
 

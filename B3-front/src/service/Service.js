@@ -37,7 +37,11 @@ class Service {
         }
     }
 
-    async signAndBroadcast(params={}, contractAddress, contractVersion) {
+    async getContractKey(contractAddress, key) {
+        return await this.get(`${this.url}}/contracts/${contractAddress}/${key}`);
+    }
+
+    async signAndBroadcast(params={}, contractAddress) {
         return await this.post("transactions/signAndBroadcast", {
             "contractId": contractAddress,
             "fee": 0,
@@ -46,7 +50,7 @@ class Service {
             "type": 104,
             "params": params,
             "version": 2,
-            "contractVersion": contractVersion
+            "contractVersion": 1
         })
     }
 }

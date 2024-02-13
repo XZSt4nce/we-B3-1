@@ -6,17 +6,17 @@ import {Context} from "../../core/ContextWrapper";
 
 export const SignUp = () => {
     const [role, setRole] = useState("CLIENT");
+    const [isEmployee, setIsEmployee] = useState(false);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [organizationKey, setOrganizationKey] = useState("");
     const {users, signUp} = useContext(Context);
 
-    const onRoleChange = (ev) => {
+    const clearData = () => {
         setTitle("");
         setDescription("");
         setOrganizationKey("");
-        setRole(ev.target.value);
-    }
+    };
 
     const handler = (ev) => {
         ev.preventDefault();
@@ -51,8 +51,11 @@ export const SignUp = () => {
                     <Form.Label>Ваша роль*</Form.Label>
                     <Form.Select
                         name='role'
-                        defaultValue={"CLIENT"}
-                        onChange={onRoleChange}
+                        defaultValue={role}
+                        onChange={e => {
+                            clearData();
+                            setRole(e.target.value);
+                        }}
                     >
                         <option value='CLIENT'>Пользователь</option>
                         <option value='DISTRIBUTOR'>Дистрибутор</option>
@@ -60,21 +63,35 @@ export const SignUp = () => {
                     </Form.Select>
                 </Form.Group>
                 {role === "CLIENT" ? (
-                    <Control controlId={"region"} label={"Регион"} />
+                    <Control controlId={"region"} label={"Регион"} placeholder={"Введите Ваш регион"} />
                 ) : (
                     <>
-                        <Control controlId={"title"} label={"Название"} onChange={e => setTitle(e.target.value)} />
-                        {role === "SUPPLIER" && (
-                            <Control controlId={"description"} label={"Описание"} onChange={e => setDescription(e.target.value)} />
-                        )}
-                        <Control controlId={"regions"} label={"Регионы"} />
-                        <Control
-                            controlId={"organization"}
-                            label={"Публичный ключ организации"}
-                            placeholder={"Введите, если Вы сотрудник организации"}
-                            required={false}
-                            onChange={e => setOrganizationKey(e.target.value)}
+                        <Control controlId={"regions"} label={"Регионы"} placeholder={"Введите регион(-ы), в которых Вы будете распространять товары"} />
+                        <Form.Check
+                            type={"checkbox"}
+                            id={"isEmployee"}
+                            label={"Я сотрудник"}
+                            onChange={e => {
+                                clearData();
+                                setIsEmployee(e.target.checked);
+                            }}
                         />
+                        {isEmployee ? (
+                            <Control
+                                controlId={"organization"}
+                                label={"Публичный ключ организации"}
+                                placeholder={"Введите, если Вы сотрудник организации"}
+                                required={false}
+                                onChange={e => setOrganizationKey(e.target.value)}
+                            />
+                        ) : (
+                            <>
+                                <Control controlId={"title"} label={"Название"} onChange={e => setTitle(e.target.value)} />
+                                {role === "SUPPLIER" && (
+                                    <Control controlId={"description"} label={"Описание"} onChange={e => setDescription(e.target.value)} />
+                                )}
+                            </>
+                        )}
                     </>
                 )}
                 <Button type={"submit"}>Зарегистрироваться</Button>

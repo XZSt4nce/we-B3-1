@@ -1,7 +1,7 @@
-import {BrowserRouter, Route, Switch} from "react-router-dom";
+import {BrowserRouter, Switch} from "react-router-dom";
 import {ContextWrapper} from "../../core/ContextWrapper";
 import {Layout} from "../components/HOCs/Layout";
-import {Routes} from "../../constants/Routes";
+import {AppRoutes} from "./AppRoutes";
 
 function App() {
   return (
@@ -9,11 +9,7 @@ function App() {
       <Switch>
         <ContextWrapper>
           <Layout>
-            {Routes.map((route, idx) => (
-                <Route path={route.path} exact key={idx}>
-                  <route.page />
-                </Route>
-            ))}
+              <AppRoutes />
           </Layout>
         </ContextWrapper>
       </Switch>

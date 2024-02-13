@@ -12,7 +12,7 @@ export const Layout = ({children}) => {
     }, []);
 
     return (
-        <div className={"d-flex flex-column"}>
+        <div className={"d-flex flex-column w-100 h-100"}>
             <Navbar className={"p-2 d-flex"} style={{backgroundColor: "rebeccapurple"}}>
                 <Navbar.Brand className={"text-white"} href="#home">Профессионалы</Navbar.Brand>
                 <div className={"d-flex flex-grow-1 justify-content-end"}>

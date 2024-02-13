@@ -96,7 +96,7 @@ public class Contract implements IContract {
                     description,
                     role
             );
-            organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
+            organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<>() {});
             organizationList.add(organization);
             contractState.put(ORGANIZATIONS_LIST, organizationList);
         } else if (isPresent(description)) {
@@ -147,7 +147,7 @@ public class Contract implements IContract {
             if (isPresent(organizationKey)) {
                 Organization organization = organizationExist(organizationKey);
                 organization.addEmployee(userPublicKey);
-                organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
+                organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<>() {});
                 organizationList.set(organizationKey, organization);
                 contractState.put(ORGANIZATIONS_LIST, organizationList);
             }
@@ -188,7 +188,7 @@ public class Contract implements IContract {
     ) throws Exception {
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyRole(sender, UserRole.SUPPLIER); // Выполнять метод может только поставщик
-        productList = contractState.get(PRODUCTS_LIST, new TypeReference<List<Product>>() {});
+        productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
         user.addProductProvided(productList.size());
         productList.add(new Product(sender, title, description, regions)); // Добавление продукта в систему
         contractState.put(PRODUCTS_LIST, productList);
@@ -233,7 +233,7 @@ public class Contract implements IContract {
         regions = isPresent(regions) ? regions : product.getRegions();
 
         product.confirm(description, regions, minOrderCount, maxOrderCount, distributors); // Подтверждение продукта
-        productList = contractState.get(PRODUCTS_LIST, new TypeReference<List<Product>>() {});
+        productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
         productList.set(productKey, product); // Обновление продукта в системе
         contractState.put(PRODUCTS_LIST, productList);
     }
@@ -246,11 +246,11 @@ public class Contract implements IContract {
             int productKey,
             String executorKey,
             int count,
-            Date desiredDeliveryLimit,
+            long desiredDeliveryLimit,
             String deliveryAddress
     ) throws Exception {
         User user = userHaveAccess(sender, password);
-        userExist(executorKey);
+        User executor = userExist(executorKey);
         Product product = productExist(productKey);
         haveRegion(sender, product.getRegions());
 
@@ -268,6 +268,9 @@ public class Contract implements IContract {
         } else {
             onlyRole(sender, UserRole.DISTRIBUTOR);
             onlyRole(executorKey, UserRole.SUPPLIER);
+            if (executor.getProducts().get(productKey) < count) {
+                throw NOT_ENOUGH_PRODUCTS;
+            }
             if (!Objects.equals(product.getMader(), executorKey)) {
                 throw INCORRECT_DATA;
             }
@@ -275,7 +278,7 @@ public class Contract implements IContract {
 
         // Создание заказа и запись в систему
         Order order = new Order(sender, executorKey, productKey, count, desiredDeliveryLimit, deliveryAddress);
-        orderList = contractState.get(ORDERS_LIST, new TypeReference<List<Order>>() {});
+        orderList = contractState.get(ORDERS_LIST, new TypeReference<>() {});
         orderList.add(order);
         contractState.put(ORDERS_LIST, orderList);
     }
@@ -287,7 +290,7 @@ public class Contract implements IContract {
             String password,
             int orderKey,
             int totalPrice,
-            Date deliveryLimit,
+            long deliveryLimit,
             boolean isPrepaymentAvailable
     ) throws Exception {
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
@@ -295,7 +298,7 @@ public class Contract implements IContract {
         onlyExecutor(sender, orderKey); // Вызвать метод может только исполнитель, у которого был совершён заказ
         onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_EMPLOYEE); // Чтобы уточнить данные, заказ должен быть только создан
         // Если организацией (или её сотрудником) была изменена дата доставки, то перезаписать её
-        deliveryLimit = isPresent(deliveryLimit) ? deliveryLimit : order.getDeliveryDate();
+        deliveryLimit = deliveryLimit == 0 ? order.getDeliveryDate() : deliveryLimit;
         order.clarify(totalPrice, deliveryLimit, isPrepaymentAvailable); // Уточнение данных
         orderList.set(orderKey, order); // Обновление заказа в системе
     }
@@ -396,7 +399,7 @@ public class Contract implements IContract {
 
     private Organization organizationExist(Integer organizationKey) throws Exception {
         try {
-            organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
+            organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<>() {});
             return organizationList.get(organizationKey);
         } catch (Exception e) {
             throw ORGANIZATION_NOT_FOUND;
@@ -495,10 +498,10 @@ public class Contract implements IContract {
 
     private void haveRegion(String userPublicKey, String[] regions) throws Exception {
         String[] userRegions = userMapping.get(userPublicKey).getRegions();
-        List<String> productRegions = Arrays.stream(regions).toList();
+        List<String> productRegions = List.of(regions);
         if (Arrays.stream(userRegions)
-                .filter(productRegions::contains).toList()
-                .isEmpty()
+                .filter(productRegions::contains)
+                .toArray().length == 0
         ) {
             throw INCORRECT_DATA_REGIONS;
         }
