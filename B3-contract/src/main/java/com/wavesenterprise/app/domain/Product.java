@@ -1,6 +1,7 @@
 package com.wavesenterprise.app.domain;
 
 public class Product {
+    private final int id;
     private final String mader;
     private final String title;
     private String description;
@@ -11,16 +12,19 @@ public class Product {
     private boolean isConfirmed;
 
     public Product() {
+        this.id = -1;
         this.mader = null;
         this.title = null;
     }
 
     public Product(
+            int id,
             String sender,
             String title,
             String description,
             String[] regions
     ) {
+        this.id = id;
         this.mader = sender;
         this.title = title;
         this.description = description;
@@ -105,5 +109,9 @@ public class Product {
 
     public void setConfirmed(boolean confirmed) {
         isConfirmed = confirmed;
+    }
+
+    public int getId() {
+        return id;
     }
 }

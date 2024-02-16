@@ -5,22 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9a18c2c8-82d3-40a7-9306-d9cb0aa3c6ab" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/constants/RoutesParams.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ui/app/AppRoutes.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ui/components/User.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../start.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../startFront.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/api/IContract.java" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/api/IContract.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/constants/OrderStatus.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/components/EmptyListPlug.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/components/OrdersList.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/components/ProductsList.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/app/Contract.java" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/app/Contract.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/domain/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/domain/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/domain/Product.java" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/domain/Product.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/constants/contractAddress.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/contractAddress.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/constants/Routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/Routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/constants/RoutesParams.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/constants/UserRole.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/UserRole.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/constants/contractAddress.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/ContractAddress.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/ContextWrapper.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/ContextWrapper.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/Service.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/Service.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/app/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/app/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/components/HOCs/Layout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/HOCs/Layout.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/components/SignUp.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/SignUp.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/app/AppRoutes.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/components/Profile.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/Profile.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/components/User.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/User.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/kit/FormGroups/Control.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/FormGroups/Control.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/kit/Order.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/Order.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/kit/Product.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/Product.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/pages/MainPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/pages/MainPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/pages/MarketPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/pages/IndexPage.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../startContract.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../startContract.bat" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -50,24 +56,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/defea/IdeaProjects/we-B3-1/B3-front",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.Color Scheme Font",
-    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\WebStorm 2023.3.1\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/defea/IdeaProjects/we-B3-1/B3-front&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.IDE.editor.colors.Color Scheme Font&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\WebStorm 2023.3.1\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -84,7 +90,8 @@
       <workItem from="1707644780927" duration="7655000" />
       <workItem from="1707732919408" duration="3903000" />
       <workItem from="1707741386336" duration="2614000" />
-      <workItem from="1707809618931" duration="15876000" />
+      <workItem from="1707809618931" duration="16094000" />
+      <workItem from="1708066693525" duration="11175000" />
     </task>
     <servers />
   </component>

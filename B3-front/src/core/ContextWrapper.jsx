@@ -2,7 +2,7 @@ import React, {createContext, useState} from 'react';
 import Service from "../service/Service";
 import {ContractKeys} from "../constants/ContractKeys";
 import {Errors} from "../constants/Errors";
-import {contractAddress} from "../constants/contractAddress.js";
+import {contractAddress} from "../constants/ContractAddress.js";
 
 export const Context = createContext({});
 export const ContextWrapper = ({children}) => {
@@ -77,7 +77,7 @@ export const ContextWrapper = ({children}) => {
                 "value": organizationKey,
                 "key": "organizationKey"
             }
-        ],  contractAddress, 1);
+        ],  contractAddress);
     };
 
     const activateUser = async (userPublicKey, description, fullName, email, regions) => {
@@ -122,18 +122,14 @@ export const ContextWrapper = ({children}) => {
                 "value": regions.toString(),
                 "key": "regions"
             }
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const signIn = async (login, password) => {
         const key = `${ContractKeys.USERS_MAPPING_PREFIX}_${login}`;
-        if (Object.keys(users).includes(key)) {
-            if (users[key].password === await sha256(login + password)) {
-                setUser(users[key]);
-                setPassword(password);
-            } else {
-                alert(Errors.INCORRECT_LOGIN);
-            }
+        if (users[key].password === await sha256(login + password)) {
+            setUser(users[key]);
+            setPassword(password);
         } else {
             alert(Errors.INCORRECT_LOGIN);
         }
@@ -166,7 +162,7 @@ export const ContextWrapper = ({children}) => {
                 "value": userPublicKey,
                 "key": "userPublicKey"
             }
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const createProduct = async (title, description, regions) => {
@@ -201,7 +197,7 @@ export const ContextWrapper = ({children}) => {
                 "value": regions.toString(),
                 "key": "regions"
             }
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const confirmProduct = async (productKey, description, regions, minOrderCount, maxOrderCount, distributors) => {
@@ -251,7 +247,7 @@ export const ContextWrapper = ({children}) => {
                 "value": distributors.toString(),
                 "key": "distributors"
             },
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const makeOrder = async (productKey, organization, count, desiredDeliveryLimit, deliveryAddress) => {
@@ -296,7 +292,7 @@ export const ContextWrapper = ({children}) => {
                 "value": deliveryAddress,
                 "key": "deliveryAddress"
             },
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const clarifyOrder = async (orderKey, totalPrice, deliveryLimit, isPrepaymentAvailable) => {
@@ -336,7 +332,7 @@ export const ContextWrapper = ({children}) => {
                 "value": isPrepaymentAvailable,
                 "key": "isPrepaymentAvailable"
             },
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const confirmOrCancelOrder = async (orderKey, isConfirm) => {
@@ -366,7 +362,7 @@ export const ContextWrapper = ({children}) => {
                 "value": isConfirm,
                 "key": "isConfirm"
             },
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const payOrder = async (orderKey) => {
@@ -391,7 +387,7 @@ export const ContextWrapper = ({children}) => {
                 "value": orderKey,
                 "key": "orderKey"
             }
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const completeOrder = async (orderKey) => {
@@ -416,7 +412,7 @@ export const ContextWrapper = ({children}) => {
                 "value": orderKey,
                 "key": "orderKey"
             }
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const takeOrder = async (orderKey) => {
@@ -445,7 +441,7 @@ export const ContextWrapper = ({children}) => {
                 "value": orderKey,
                 "key": "orderKey"
             }
-        ], contractAddress, 1);
+        ], contractAddress);
     };
 
     const getMappingObjects = (data, prefix) => {

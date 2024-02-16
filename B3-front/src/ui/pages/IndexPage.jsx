@@ -1,23 +1,25 @@
 import React, {useContext, useEffect} from 'react';
+import {SignIn} from "../components/SignIn";
 import {Context} from "../../core/ContextWrapper";
 import {useHistory} from "react-router-dom/cjs/react-router-dom";
-import {Profile} from "../components/Profile";
+import {SignUp} from "../components/SignUp";
 
-const MarketPage = () => {
+const IndexPage = () => {
     const {user} = useContext(Context);
     const nav = useHistory();
 
     useEffect(() => {
-        if (!user.login) {
-            nav.push("/");
+        if (user.login) {
+            nav.push("/main");
         }
     }, [user]);
 
     return (
         <>
-           <Profile />
+            <SignIn />
+            <SignUp />
         </>
     );
 };
 
-export default MarketPage;
+export default IndexPage;

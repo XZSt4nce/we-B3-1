@@ -10,6 +10,7 @@ import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_RIGHTS
 
 public class Order {
     private String hash;
+    private final int id;
     private final String clientKey;
     private final String executorKey;
     private final int productKey;
@@ -17,20 +18,22 @@ public class Order {
     private Integer price;
     private long deliveryDate;
     private final String deliveryAddress;
-    private final Date orderCreationDate;
+    private final Date creationDate;
     private OrderStatus status;
     private boolean isPrepaymentAvailable;
 
     public Order() {
+        this.id = -1;
         this.clientKey = null;
         this.executorKey = null;
         this.productKey = 0;
         this.amount = 0;
         this.deliveryAddress = null;
-        this.orderCreationDate = null;
+        this.creationDate = null;
     }
 
     public Order(
+            int id,
             String clientKey,
             String executorKey,
             int productKey,
@@ -38,6 +41,7 @@ public class Order {
             long deliveryDate,
             String deliveryAddress
     ) {
+        this.id = id;
         this.clientKey = clientKey;
         this.executorKey = executorKey;
         this.productKey = productKey;
@@ -45,7 +49,7 @@ public class Order {
         this.deliveryDate = deliveryDate;
         this.deliveryAddress = deliveryAddress;
         this.status = OrderStatus.WAITING_FOR_EMPLOYEE;
-        this.orderCreationDate = new Date();
+        this.creationDate = new Date();
         updateHash();
     }
 
@@ -60,7 +64,7 @@ public class Order {
                         +this.price
                         +this.deliveryDate
                         +this.deliveryAddress
-                        +this.orderCreationDate
+                        +this.creationDate
                         +this.status
                         +this.isPrepaymentAvailable,
                         StandardCharsets.UTF_8
@@ -136,8 +140,8 @@ public class Order {
         return deliveryAddress;
     }
 
-    public Date getOrderCreationDate() {
-        return orderCreationDate;
+    public Date getCreationDate() {
+        return creationDate;
     }
 
     public long getDeliveryDate() {
@@ -178,5 +182,13 @@ public class Order {
 
     public void setPrepaymentAvailable(boolean prepaymentAvailable) {
         isPrepaymentAvailable = prepaymentAvailable;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public boolean isPrepaymentAvailable() {
+        return isPrepaymentAvailable;
     }
 }

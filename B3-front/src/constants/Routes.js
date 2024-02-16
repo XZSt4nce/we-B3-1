@@ -1,13 +1,18 @@
+import IndexPage from "../ui/pages/IndexPage";
 import MainPage from "../ui/pages/MainPage";
-import MarketPage from "../ui/pages/MarketPage";
+import {User} from "../ui/components/User";
 
 export const Routes = [
     {
         path: "/",
+        page: IndexPage
+    },
+    {
+        path: "/main",
         page: MainPage
     },
     {
-        path: "/market",
-        page: MarketPage
+        path: "/users/:id",
+        page: User
     }
 ]

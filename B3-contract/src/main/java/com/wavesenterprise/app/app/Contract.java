@@ -189,8 +189,9 @@ public class Contract implements IContract {
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyRole(sender, UserRole.SUPPLIER); // Выполнять метод может только поставщик
         productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
-        user.addProductProvided(productList.size());
-        productList.add(new Product(sender, title, description, regions)); // Добавление продукта в систему
+        int productId = productList.size();
+        user.addProductProvided(productId);
+        productList.add(new Product(productId, sender, title, description, regions)); // Добавление продукта в систему
         contractState.put(PRODUCTS_LIST, productList);
     }
 
@@ -277,7 +278,7 @@ public class Contract implements IContract {
         }
 
         // Создание заказа и запись в систему
-        Order order = new Order(sender, executorKey, productKey, count, desiredDeliveryLimit, deliveryAddress);
+        Order order = new Order(orderList.size(), sender, executorKey, productKey, count, desiredDeliveryLimit, deliveryAddress);
         orderList = contractState.get(ORDERS_LIST, new TypeReference<>() {});
         orderList.add(order);
         contractState.put(ORDERS_LIST, orderList);
