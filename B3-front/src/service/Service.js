@@ -2,8 +2,8 @@ import {Errors} from '../constants/Errors';
 
 class Service {
     url = "http://localhost:6882";
-    nodeSender = "3NhhS4CVKcrjbqc3h84ZgWKDNSr2HKUdMCZ";
-    nodePassword = "fL2UB3rOOADO4w6dtqNTMA";
+    nodeSender = "3Nk8KgR1jRxYyu3TA7WggwiT6fwtfPErzY3";
+    nodePassword = "-sVXcpcoS3mY1aZcA9v80w";
 
     async get(endpoint) {
         try {
@@ -29,6 +29,7 @@ class Service {
             });
             if (!response.ok) {
                 alert(Errors.REQUEST_ERROR);
+                console.log(body);
             }
             return (await response).json();
         } catch (e) {

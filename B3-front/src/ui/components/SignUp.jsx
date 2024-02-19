@@ -3,6 +3,7 @@ import {WhiteBlock} from "./HOCs/WhiteBlock";
 import {Control} from "../kit/FormGroups/Control";
 import {Button, Form} from "react-bootstrap";
 import {Context} from "../../core/ContextWrapper";
+import {Errors} from "../../constants/Errors";
 
 export const SignUp = () => {
     const [role, setRole] = useState("CLIENT");
@@ -18,25 +19,34 @@ export const SignUp = () => {
         setOrganizationKey("");
     };
 
-    const handler = (ev) => {
+    const handler = async (ev) => {
         ev.preventDefault();
-        const login = ev.target[0];
-        const password = ev.target[1];
-        const fullName = ev.target[2];
-        const email = ev.target[3];
-        const regions = ev.target[4].split(",").map(el => el.trim());
+        const login = ev.target[0].value;
+        const password = ev.target[1].value;
+        const fullName = ev.target[2].value;
+        const email = ev.target[3].value;
+        const regions = JSON.stringify(ev.target[5].value.split(",").map(el => el.trim()));
         if (organizationKey) {
-            if (users[organizationKey]) {
-                if (users[organizationKey].role === role) {
-                    signUp(login, password, title, description, fullName, email, regions, organizationKey);
-                } else {
-                    alert("Чтобы стать сотрудником организации, нужно выбрать такую же роль, как у организации");
-                }
+            if (organizationKey < 0) {
+                alert(Errors.INCORRECT_DATA);
             } else {
-                alert("Организации с данным ключом не существует");
+                if (users[organizationKey]) {
+                    if (users[organizationKey].role === role) {
+                        signUp(login, password, title, description, fullName, email, regions, organizationKey);
+                    } else {
+                        alert(Errors.NO_MATCH_ORGANIZATION_ROLE);
+                    }
+                } else {
+                    alert(Errors.ORGANIZATION_NOT_FOUND);
+                }
             }
         } else {
-            signUp(login, password, title, description, fullName, email, regions, organizationKey);
+            await signUp(login, password, title, description, fullName, email, regions, -1)
+                .then(data => {
+                    if (data) {
+                        console.log(data);
+                    }
+                });
         }
     }
 
@@ -79,6 +89,7 @@ export const SignUp = () => {
                         {isEmployee ? (
                             <Control
                                 controlId={"organization"}
+                                type={"number"}
                                 label={"Публичный ключ организации"}
                                 placeholder={"Введите, если Вы сотрудник организации"}
                                 required={false}

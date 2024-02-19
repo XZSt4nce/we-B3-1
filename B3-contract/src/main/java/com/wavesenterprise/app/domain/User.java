@@ -1,9 +1,6 @@
 package com.wavesenterprise.app.domain;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_FUNDS;
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_PRODUCTS;
@@ -47,7 +44,7 @@ public class User {
         this.balance = 10_000;
         this.fullName = fullName;
         this.email = email;
-        this.regions = regions;
+        this.regions = Arrays.stream(regions).map(String::toUpperCase).distinct().toList().toArray(new String[0]);
         this.productsProvided = new ArrayList<>();
         this.products = new HashMap<>();
         this.orders = new ArrayList<>();
@@ -64,7 +61,7 @@ public class User {
     ) {
         this.fullName = fullName;
         this.email = email;
-        this.regions = regions;
+        this.regions = Arrays.stream(regions).map(String::toUpperCase).distinct().toList().toArray(new String[0]);
         this.isActivated = true;
     }
 

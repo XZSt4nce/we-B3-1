@@ -14,6 +14,14 @@ export const ContextWrapper = ({children}) => {
     const [organizations, setOrganizations] = useState([]);
 
     const getContractValues = async () => {
+        const getMappingObjects = (data, prefix) => {
+            const objectsData = {};
+            Object.keys(data)
+                .filter(key => key.startsWith(prefix))
+                .forEach(key => objectsData[key] = data[key]);
+            return objectsData;
+        };
+
         const response = await Service.get(`contracts/${contractAddress}`);
         const data = {};
         response.forEach(el => {
@@ -31,6 +39,19 @@ export const ContextWrapper = ({children}) => {
     };
 
     const signUp = async (login, password, title, description, fullName, email, regions, organizationKey) => {
+        const handler = async() => {
+            if (login in users) {
+                alert(Errors.USER_ALREADY_EXIST);
+            } else {
+                await Service.getContractKey(contractAddress, `${ContractKeys.USERS_MAPPING_PREFIX}_${login}`)
+                    .then((data) => {
+                        if (data) {
+                            setUsers({...users, login: data});
+                        }
+                    });
+            }
+        };
+
         return await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -69,7 +90,7 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": regions.toString(),
+                "value": JSON.stringify(regions),
                 "key": "regions"
             },
             {
@@ -77,7 +98,12 @@ export const ContextWrapper = ({children}) => {
                 "value": organizationKey,
                 "key": "organizationKey"
             }
-        ],  contractAddress);
+        ],  contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(handler);
+                }
+            });
     };
 
     const activateUser = async (userPublicKey, description, fullName, email, regions) => {
@@ -119,15 +145,20 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": regions.toString(),
+                "value": JSON.stringify(regions),
                 "key": "regions"
             }
-        ], contractAddress);
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(() => updateUser(userPublicKey));
+                }
+            });
     };
 
     const signIn = async (login, password) => {
         const key = `${ContractKeys.USERS_MAPPING_PREFIX}_${login}`;
-        if (users[key].password === await sha256(login + password)) {
+        if (users[key]?.password === await sha256(login + password)) {
             setUser(users[key]);
             setPassword(password);
         } else {
@@ -138,6 +169,7 @@ export const ContextWrapper = ({children}) => {
     const signOut = () => {
         setUser({});
         setPassword("");
+        setOrders([]);
     };
 
     const blockUser = async (userPublicKey) => {
@@ -162,10 +194,24 @@ export const ContextWrapper = ({children}) => {
                 "value": userPublicKey,
                 "key": "userPublicKey"
             }
-        ], contractAddress);
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(() => updateUser(userPublicKey));
+                }
+            });
     };
 
     const createProduct = async (title, description, regions) => {
+        const handler = async () => {
+            await Service.getContractKey(contractAddress, ContractKeys.PRODUCTS_LIST)
+                .then((data) => {
+                    if (data) {
+                        setProducts(data);
+                    }
+                });
+        };
+
         return await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -194,10 +240,15 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": regions.toString(),
+                "value": JSON.stringify(regions),
                 "key": "regions"
             }
-        ], contractAddress);
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(handler);
+                }
+            });
     };
 
     const confirmProduct = async (productKey, description, regions, minOrderCount, maxOrderCount, distributors) => {
@@ -229,7 +280,7 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": regions.toString(),
+                "value": JSON.stringify(regions),
                 "key": "regions"
             },
             {
@@ -244,13 +295,27 @@ export const ContextWrapper = ({children}) => {
             },
             {
                 "type": "string",
-                "value": distributors.toString(),
+                "value": JSON.stringify(distributors),
                 "key": "distributors"
             },
-        ], contractAddress);
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(() => updateProduct(productKey));
+                }
+            });
     };
 
     const makeOrder = async (productKey, organization, count, desiredDeliveryLimit, deliveryAddress) => {
+        const handler = async() => {
+            await Service.getContractKey(contractAddress, ContractKeys.ORDERS_LIST)
+                .then((data) => {
+                    if (data) {
+                        setOrders(data);
+                    }
+                });
+        };
+
         return await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -292,7 +357,12 @@ export const ContextWrapper = ({children}) => {
                 "value": deliveryAddress,
                 "key": "deliveryAddress"
             },
-        ], contractAddress);
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(handler);
+                }
+            });
     };
 
     const clarifyOrder = async (orderKey, totalPrice, deliveryLimit, isPrepaymentAvailable) => {
@@ -332,7 +402,12 @@ export const ContextWrapper = ({children}) => {
                 "value": isPrepaymentAvailable,
                 "key": "isPrepaymentAvailable"
             },
-        ], contractAddress);
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(() => updateOrder(orderKey));
+                }
+            });
     };
 
     const confirmOrCancelOrder = async (orderKey, isConfirm) => {
@@ -362,7 +437,12 @@ export const ContextWrapper = ({children}) => {
                 "value": isConfirm,
                 "key": "isConfirm"
             },
-        ], contractAddress);
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(() => updateOrder(orderKey));
+                }
+            });
     };
 
     const payOrder = async (orderKey) => {
@@ -387,7 +467,12 @@ export const ContextWrapper = ({children}) => {
                 "value": orderKey,
                 "key": "orderKey"
             }
-        ], contractAddress);
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(() => updateOrder(orderKey));
+                }
+            });
     };
 
     const completeOrder = async (orderKey) => {
@@ -412,14 +497,15 @@ export const ContextWrapper = ({children}) => {
                 "value": orderKey,
                 "key": "orderKey"
             }
-        ], contractAddress);
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(() => updateOrder(orderKey));
+                }
+            });
     };
 
     const takeOrder = async (orderKey) => {
-        const onComplete = async() => {
-            Service.getContractKey(contractAddress,)
-        };
-
         return await Service.signAndBroadcast([
             {
                 "type": "string",
@@ -441,28 +527,67 @@ export const ContextWrapper = ({children}) => {
                 "value": orderKey,
                 "key": "orderKey"
             }
-        ], contractAddress);
-    };
-
-    const getMappingObjects = (data, prefix) => {
-        const objectsData = {};
-        Object.keys(data)
-            .filter(key => key.startsWith(prefix))
-            .forEach(key => objectsData[key] = data[key]);
-        return objectsData;
+        ], contractAddress)
+            .then((data) => {
+                if (data) {
+                    waitThreeSeconds(() => updateOrder(orderKey));
+                }
+            });
     };
 
     const sha256 = async (passwd) => {
         const passwdBuffer = new TextEncoder('utf-8').encode(passwd);
         const hashBuffer = await crypto.subtle.digest('SHA-256', passwdBuffer);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
-        waitThreeSeconds();
         return hashArray.map(b => ('00' + b.toString(16)).slice(-2)).join('');
-    }
+    };
 
-    const waitThreeSeconds = () => {
-        setTimeout(() => {}, 3000);
-    }
+    const waitThreeSeconds = (callback) => {
+        setTimeout(callback, 3000);
+    };
+
+    const updateUser = async (userPublicKey) => {
+        if (userPublicKey in users) {
+            await Service.getContractKey(contractAddress, `${ContractKeys.USERS_MAPPING_PREFIX}_${userPublicKey}`)
+                .then((data) => {
+                    if (data) {
+                        setUsers({...users, login: data});
+                    }
+                });
+        } else {
+            alert(Errors.USER_NOT_FOUND);
+        }
+    };
+
+    const updateOrder = async (orderKey) => {
+        if (orderKey > orders.length - 1 || orderKey < 0) {
+            alert(Errors.ORDER_NOT_FOUND);
+        } else {
+            await Service.getContractKey(contractAddress, `${ContractKeys.ORDERS_LIST}_${orderKey}`)
+                .then((data) => {
+                    if (data) {
+                        const newOrders = [...orders];
+                        newOrders[orderKey] = data;
+                        setOrders(newOrders);
+                    }
+                });
+        }
+    };
+
+    const updateProduct = async (productKey) => {
+        if (productKey > products.length - 1 || productKey < 0) {
+            alert(Errors.PRODUCT_NOT_FOUND);
+        } else {
+            await Service.getContractKey(contractAddress, `${ContractKeys.PRODUCTS_LIST}_${productKey}`)
+                .then((data) => {
+                    if (data) {
+                        const newProducts = [...products];
+                        newProducts[productKey] = data;
+                        setOrders(newProducts);
+                    }
+                });
+        }
+    };
 
     const values = {
         user,
@@ -483,8 +608,7 @@ export const ContextWrapper = ({children}) => {
         confirmOrCancelOrder,
         payOrder,
         completeOrder,
-        takeOrder,
-        sha256
+        takeOrder
     };
 
     return (

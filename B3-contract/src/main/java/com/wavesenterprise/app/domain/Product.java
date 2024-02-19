@@ -1,5 +1,7 @@
 package com.wavesenterprise.app.domain;
 
+import java.util.Arrays;
+
 public class Product {
     private final int id;
     private final String mader;
@@ -28,7 +30,7 @@ public class Product {
         this.mader = sender;
         this.title = title;
         this.description = description;
-        this.regions = regions;
+        this.regions = Arrays.stream(regions).map(String::toUpperCase).distinct().toList().toArray(new String[0]);
         this.isConfirmed = false;
     }
 
@@ -40,7 +42,7 @@ public class Product {
             String[] distributors
     ) {
         this.description = description;
-        this.regions = regions;
+        this.regions = Arrays.stream(regions).map(String::toUpperCase).distinct().toList().toArray(new String[0]);
         this.minOrderCount = minOrderCount;
         this.maxOrderCount = maxOrderCount;
         this.distributors = distributors;

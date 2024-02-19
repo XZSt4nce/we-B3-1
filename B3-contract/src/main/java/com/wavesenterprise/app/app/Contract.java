@@ -37,7 +37,7 @@ public class Contract implements IContract {
 
     // Метод деплоя контракта
     @Override
-    public void init() {
+    public void init() throws Exception {
         String login = "operator";
         String password = "123";
         String organizationTitle = "Profi";
@@ -61,6 +61,58 @@ public class Contract implements IContract {
                 UserRole.OPERATOR
         );
         userMapping.put(login, operator);
+
+        addUser(
+                "supplier",
+                "123",
+                login,
+                password,
+                "SuperSupplier",
+                "Wow description",
+                "Саплаер Саплаеров Саплаерович",
+                "supplier@mail.ru",
+                new String[]{"USA", "RUSSIA"},
+                -1
+        );
+
+        addUser(
+                "distributor",
+                "123",
+                login,
+                password,
+                "SuperDistributor",
+                null,
+                "Дистрибутор Дистрибуторов Дистрибуторович",
+                "distributor@mail.ru",
+                new String[]{"USA", "Japan", "usa"},
+                -1
+        );
+
+        addUser(
+                "client",
+                "123",
+                login,
+                password,
+                null,
+                null,
+                "Клиент Клиентов Клиентович",
+                "client@mail.ru",
+                new String[]{"RUSSIA"},
+                -1
+        );
+
+        addProduct(
+                "supplier",
+                "123",
+                login,
+                password,
+                "Банан",
+                "Свежий, жёлтый, большой",
+                new String[]{"USA"},
+                1,
+                0,
+                new String[]{"distributor"}
+        );
     }
 
     // Метод регистрации
@@ -222,6 +274,10 @@ public class Contract implements IContract {
             haveRegion(distributor, regions);
             userDistributor.addProductProvided(productKey);
             userMapping.put(distributor, userDistributor);
+        }
+
+        if (minOrderCount < 1) {
+            throw INCORRECT_DATA;
         }
 
         // Если количество товара за один заказ минимальное больше максимального, то отказать в выполнении метода
@@ -467,14 +523,11 @@ public class Contract implements IContract {
         }
     }
 
-    private boolean isPresent(Object o) {
-        return (o != null);
+    private boolean isPresent(Integer i) {
+        return (i != null && i >= 0);
     }
 
     private boolean isPresent(String s) {
-        if (s != null && !s.isEmpty()) {
-            System.out.println("isPresent: " + s);
-        }
         return (s != null && !s.isEmpty());
     }
 
@@ -512,5 +565,48 @@ public class Contract implements IContract {
         if (!Arrays.asList(productList.get(productKey).getDistributors()).contains(distributorKey)) {
             throw CANNOT_SELL_PRODUCT;
         }
+    }
+
+    private void addUser(
+            String login,
+            String password,
+            String operatorLogin,
+            String operatorPassword,
+            String title,
+            String description,
+            String fullName,
+            String email,
+            String[] regions,
+            Integer organizationKey
+    ) throws Exception {
+        signUp(
+                login,
+                password,
+                title,
+                description,
+                fullName,
+                email,
+                regions,
+                organizationKey
+        );
+        activateUser(operatorLogin, operatorPassword, login, fullName, email, regions);
+    }
+
+    private void addProduct(
+            String sender,
+            String password,
+            String operatorLogin,
+            String operatorPassword,
+            String title,
+            String description,
+            String[] regions,
+            int minOrderCount,
+            int maxOrderCount,
+            String[] distributors
+    ) throws Exception {
+        createProduct(sender, password, title, description, regions);
+        productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
+        int productKey = productList.size();
+        confirmProduct(operatorLogin, operatorPassword, productKey, description, regions, minOrderCount, maxOrderCount, distributors);
     }
 }

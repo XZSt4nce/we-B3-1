@@ -17,8 +17,13 @@ export const Profile = () => {
             <p>Регион(-ы): {user.regions.join(", ")}</p>
             <p>Роль: {UserRole[user.role]}</p>
             <p>{user.activated ? "Активирован" : "Не активирован"}</p>
-            {user.blocked && (<p>Заблокирован</p>)}
-            {user.role !== "CLIENT" && <ProductsList products={user.productsProvided.map(product => products[product])}/>}
+            {user.blocked && (<p className={"text-danger"}>Заблокирован</p>)}
+            {user.role !== "CLIENT" && (
+                <ProductsList
+                    title={"Мой ассортимент"}
+                    products={user.productsProvided.map(product => products[product])}
+                />
+            )}
             {user.role !== "SUPPLIER" && <ProductsList products={Object.keys(user.products).map(product => products[product])} amounts={user.products} title={"Склад"}/>}
             <OrdersList orders={user.orders.map(order => orders[order])} />
         </WhiteBlock>

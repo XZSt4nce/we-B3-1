@@ -6,7 +6,7 @@ import com.wavesenterprise.sdk.contract.api.annotation.InvokeParam;
 
 public interface IContract {
     @ContractInit
-    void init();
+    void init() throws Exception;
 
     @ContractAction
     void signUp(

@@ -1,5 +1,8 @@
 #!/bin/bash
 #$1 -- image
-"$(dirname $0)"/../gradlew clean build
-docker build "$(dirname $0)" -f "$(dirname $0)"/Dockerfile --platform linux/amd64 -t $1
+.././gradlew clean build
+docker build . --platform linux/amd64 -t $1
 docker push $1
+inspectResult=$(docker inspect $1 | grep '"Id": "sha256')
+imageHash=$(awk -F'"Id": "sha256:|",' '{print $2}' <<< "$inspectResult")
+printf "image - $1 \nimageHash - $imageHash\n"

@@ -1,6 +1,6 @@
 import IndexPage from "../ui/pages/IndexPage";
 import MainPage from "../ui/pages/MainPage";
-import {User} from "../ui/components/User";
+import {UserPage} from "../ui/pages/UserPage";
 
 export const Routes = [
     {
@@ -12,7 +12,7 @@ export const Routes = [
         page: MainPage
     },
     {
-        path: "/users/:id",
-        page: User
+        path: "/user/:id",
+        page: UserPage
     }
 ]
