@@ -61,58 +61,6 @@ public class Contract implements IContract {
                 UserRole.OPERATOR
         );
         userMapping.put(login, operator);
-
-        addUser(
-                "supplier",
-                "123",
-                login,
-                password,
-                "SuperSupplier",
-                "Wow description",
-                "Саплаер Саплаеров Саплаерович",
-                "supplier@mail.ru",
-                new String[]{"USA", "RUSSIA"},
-                -1
-        );
-
-        addUser(
-                "distributor",
-                "123",
-                login,
-                password,
-                "SuperDistributor",
-                null,
-                "Дистрибутор Дистрибуторов Дистрибуторович",
-                "distributor@mail.ru",
-                new String[]{"USA", "Japan", "usa"},
-                -1
-        );
-
-        addUser(
-                "client",
-                "123",
-                login,
-                password,
-                null,
-                null,
-                "Клиент Клиентов Клиентович",
-                "client@mail.ru",
-                new String[]{"RUSSIA"},
-                -1
-        );
-
-        addProduct(
-                "supplier",
-                "123",
-                login,
-                password,
-                "Банан",
-                "Свежий, жёлтый, большой",
-                new String[]{"USA"},
-                1,
-                0,
-                new String[]{"distributor"}
-        );
     }
 
     // Метод регистрации
@@ -177,9 +125,9 @@ public class Contract implements IContract {
             String email,
             String[] regions
     ) throws Exception {
-        User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
+        userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyRole(sender, UserRole.OPERATOR); // Метод может вызвать только оператор
-        userExist(userPublicKey);
+        User user = userExist(userPublicKey);
 
         // Если пользователь уже активирован, то отменить выполнение метода
         if (user.isActivated()) {
@@ -441,17 +389,12 @@ public class Contract implements IContract {
      */
 
     private User userExist(String userPublicKey) throws Exception {
-        if (!userMapping.has(userPublicKey)) {
+        Optional<User> user = userMapping.tryGet(userPublicKey);
+        if (user.isPresent()) {
+            return user.get();
+        } else {
             throw USER_NOT_FOUND;
         }
-        User user = userMapping.get(userPublicKey);
-        if (!user.isActivated()) {
-            throw USER_IS_NOT_ACTIVATED;
-        }
-        if (user.isBlocked()) {
-            throw USER_IS_BLOCKED;
-        }
-        return user;
     }
 
     private Organization organizationExist(Integer organizationKey) throws Exception {
@@ -467,6 +410,12 @@ public class Contract implements IContract {
         User user = userExist(userPublicKey);
         if (!Objects.equals(user.getPassword(), hashPassword(userPublicKey, password))) {
             throw INCORRECT_LOGIN_OR_PASSWORD;
+        }
+        if (!user.isActivated()) {
+            throw USER_IS_NOT_ACTIVATED;
+        }
+        if (user.isBlocked()) {
+            throw USER_IS_BLOCKED;
         }
         return user;
     }
@@ -565,48 +514,5 @@ public class Contract implements IContract {
         if (!Arrays.asList(productList.get(productKey).getDistributors()).contains(distributorKey)) {
             throw CANNOT_SELL_PRODUCT;
         }
-    }
-
-    private void addUser(
-            String login,
-            String password,
-            String operatorLogin,
-            String operatorPassword,
-            String title,
-            String description,
-            String fullName,
-            String email,
-            String[] regions,
-            Integer organizationKey
-    ) throws Exception {
-        signUp(
-                login,
-                password,
-                title,
-                description,
-                fullName,
-                email,
-                regions,
-                organizationKey
-        );
-        activateUser(operatorLogin, operatorPassword, login, fullName, email, regions);
-    }
-
-    private void addProduct(
-            String sender,
-            String password,
-            String operatorLogin,
-            String operatorPassword,
-            String title,
-            String description,
-            String[] regions,
-            int minOrderCount,
-            int maxOrderCount,
-            String[] distributors
-    ) throws Exception {
-        createProduct(sender, password, title, description, regions);
-        productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
-        int productKey = productList.size();
-        confirmProduct(operatorLogin, operatorPassword, productKey, description, regions, minOrderCount, maxOrderCount, distributors);
     }
 }
