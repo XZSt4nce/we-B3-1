@@ -7,5 +7,6 @@ export const Errors = {
     PRODUCT_NOT_FOUND: "Продукт не найден",
     USER_NOT_FOUND: "Пользователь не найден",
     NO_MATCH_ORGANIZATION_ROLE: "Чтобы стать сотрудником организации, нужно выбрать такую же роль, как у организации",
-    USER_ALREADY_EXIST: "Пользователь с таким логином уже существует"
+    USER_ALREADY_EXIST: "Пользователь с таким логином уже существует",
+    USER_BLOCKED: "Вы заблокированы"
 };

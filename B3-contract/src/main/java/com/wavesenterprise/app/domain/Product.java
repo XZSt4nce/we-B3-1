@@ -3,21 +3,17 @@ package com.wavesenterprise.app.domain;
 import java.util.Arrays;
 
 public class Product {
-    private final int id;
-    private final String mader;
-    private final String title;
+    private int id;
+    private String mader;
+    private String title;
     private String description;
     private String[] regions;
-    private Integer minOrderCount;
-    private Integer maxOrderCount;
+    private int minOrderCount;
+    private int maxOrderCount;
     private String[] distributors;
     private boolean isConfirmed;
 
-    public Product() {
-        this.id = -1;
-        this.mader = null;
-        this.title = null;
-    }
+    public Product() {}
 
     public Product(
             int id,
@@ -32,6 +28,8 @@ public class Product {
         this.description = description;
         this.regions = Arrays.stream(regions).map(String::toUpperCase).distinct().toList().toArray(new String[0]);
         this.isConfirmed = false;
+        this.minOrderCount = -1;
+        this.maxOrderCount = -1;
     }
 
     public void confirm(
@@ -115,5 +113,17 @@ public class Product {
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setMader(String mader) {
+        this.mader = mader;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

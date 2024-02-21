@@ -13,7 +13,6 @@ class Service {
             }
             return (await response).json();
         } catch (e) {
-            console.log(e);
             alert(e);
         }
     }
@@ -25,11 +24,11 @@ class Service {
                 headers: {
                     "Content-type": "application/json"
                 },
+                mode: "no-cors",
                 body: JSON.stringify(body)
             });
             if (!response.ok) {
                 alert(Errors.REQUEST_ERROR);
-                console.log(body);
             }
             return (await response).json();
         } catch (e) {

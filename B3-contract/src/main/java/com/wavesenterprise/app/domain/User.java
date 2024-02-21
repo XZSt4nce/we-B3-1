@@ -6,29 +6,21 @@ import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_FUNDS;
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_PRODUCTS;
 
 public class User {
-    private final String login;
-    private final String password;
-    private Integer balance;
+    private String login;
+    private String password;
+    private int balance;
     private String fullName;
     private String email;
     private String[] regions;
-    private final List<Integer> productsProvided;
-    private final Map<Integer, Integer> products;
-    private final List<Integer> orders;
-    private final UserRole role;
+    private List<Integer> productsProvided;
+    private Map<Integer, Integer> products;
+    private List<Integer> orders;
+    private UserRole role;
     private boolean isActivated;
     private boolean isBlocked;
-    private final Integer organizationKey;
+    private int organizationKey;
 
-    public User() {
-        this.login = null;
-        this.password = null;
-        this.productsProvided = new ArrayList<>();
-        this.products = new HashMap<>();
-        this.orders = null;
-        this.role = null;
-        this.organizationKey = null;
-    }
+    public User() {}
 
     public User(
             String login,
@@ -176,5 +168,37 @@ public class User {
     public void addOrder(int orderKey) {
         assert orders != null;
         orders.add(orderKey);
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
+    }
+
+    public void setProductsProvided(List<Integer> productsProvided) {
+        this.productsProvided = productsProvided;
+    }
+
+    public void setProducts(Map<Integer, Integer> products) {
+        this.products = products;
+    }
+
+    public void setOrders(List<Integer> orders) {
+        this.orders = orders;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    public void setOrganizationKey(int organizationKey) {
+        this.organizationKey = organizationKey;
     }
 }

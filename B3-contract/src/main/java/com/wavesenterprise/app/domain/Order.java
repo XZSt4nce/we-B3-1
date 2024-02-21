@@ -10,27 +10,19 @@ import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_RIGHTS
 
 public class Order {
     private String hash;
-    private final int id;
-    private final String clientKey;
-    private final String executorKey;
-    private final int productKey;
-    private final int amount;
-    private Integer price;
+    private int id;
+    private String clientKey;
+    private String executorKey;
+    private int productKey;
+    private int amount;
+    private int price;
     private long deliveryDate;
-    private final String deliveryAddress;
-    private final Date creationDate;
+    private String deliveryAddress;
+    private Date creationDate;
     private OrderStatus status;
     private boolean isPrepaymentAvailable;
 
-    public Order() {
-        this.id = -1;
-        this.clientKey = null;
-        this.executorKey = null;
-        this.productKey = 0;
-        this.amount = 0;
-        this.deliveryAddress = null;
-        this.creationDate = null;
-    }
+    public Order() {}
 
     public Order(
             int id,
@@ -190,5 +182,37 @@ public class Order {
 
     public boolean isPrepaymentAvailable() {
         return isPrepaymentAvailable;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setClientKey(String clientKey) {
+        this.clientKey = clientKey;
+    }
+
+    public void setExecutorKey(String executorKey) {
+        this.executorKey = executorKey;
+    }
+
+    public void setProductKey(int productKey) {
+        this.productKey = productKey;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate;
     }
 }

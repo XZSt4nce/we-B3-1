@@ -157,10 +157,14 @@ export const ContextWrapper = ({children}) => {
     };
 
     const signIn = async (login, password) => {
-        const key = `${ContractKeys.USERS_MAPPING_PREFIX}_${login}`;
-        if (users[key]?.password === await sha256(login + password)) {
-            setUser(users[key]);
-            setPassword(password);
+        const selectedUser = users[`${ContractKeys.USERS_MAPPING_PREFIX}_${login}`];
+        if (selectedUser?.password === await sha256(login + password)) {
+            if (selectedUser.blocked) {
+                alert(Errors.USER_BLOCKED);
+            } else {
+                setUser(selectedUser);
+                setPassword(password);
+            }
         } else {
             alert(Errors.INCORRECT_LOGIN);
         }

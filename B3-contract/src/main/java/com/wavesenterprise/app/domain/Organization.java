@@ -2,15 +2,12 @@ package com.wavesenterprise.app.domain;
 import java.util.List;
 
 public class Organization {
-    private final String title;
+    private String title;
     private String description;
-    private final UserRole role;
+    private UserRole role;
     private List<String> employee;
 
-    public Organization() {
-        this.title = null;
-        this.role = null;
-    }
+    public Organization() {}
 
     public Organization(
         String sender,
@@ -50,5 +47,13 @@ public class Organization {
 
     public String getTitle() {
         return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 }

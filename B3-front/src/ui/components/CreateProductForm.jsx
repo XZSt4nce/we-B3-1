@@ -2,6 +2,7 @@ import React, {useContext} from 'react';
 import {Button, Form} from "react-bootstrap";
 import {Context} from "../../core/ContextWrapper";
 import {Control} from "../kit/FormGroups/Control";
+import {WhiteBlock} from "./HOCs/WhiteBlock";
 
 export const CreateProductForm = () => {
     const {createProduct} = useContext(Context);
@@ -15,12 +16,13 @@ export const CreateProductForm = () => {
     };
 
     return (
-        <Form onSubmit={handler}>
-            <h2 className={"text-center"}>Добавить продукт</h2>
-            <Control controlId={"title"} label={"Название"} />
-            <Control controlId={"description"} label={"Описание"} />
-            <Control controlId={"regions"} label={"Регионы"} placeholder={"Введите через запятую регионы"} />
-            <Button type={"submit"}>Создать</Button>
-        </Form>
+        <WhiteBlock title={"Создать продукт"}>
+            <Form onSubmit={handler}>
+                <Control controlId={"title"} label={"Название"} />
+                <Control controlId={"description"} label={"Описание"} />
+                <Control controlId={"regions"} label={"Регионы"} placeholder={"Введите через запятую регионы"} />
+                <Button type={"submit"}>Создать</Button>
+            </Form>
+        </WhiteBlock>
     );
 };
