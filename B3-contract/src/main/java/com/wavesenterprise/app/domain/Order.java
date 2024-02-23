@@ -4,9 +4,11 @@ import com.google.common.hash.Hashing;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Objects;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.INCORRECT_DATA;
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_RIGHTS;
+import static com.wavesenterprise.app.api.IContract.OrderStatuses.*;
 
 public class Order {
     private String hash;
@@ -19,7 +21,7 @@ public class Order {
     private long deliveryDate;
     private String deliveryAddress;
     private Date creationDate;
-    private OrderStatus status;
+    private String status;
     private boolean isPrepaymentAvailable;
 
     public Order() {}
@@ -40,7 +42,7 @@ public class Order {
         this.amount = amount;
         this.deliveryDate = deliveryDate;
         this.deliveryAddress = deliveryAddress;
-        this.status = OrderStatus.WAITING_FOR_EMPLOYEE;
+        this.status = WAITING_FOR_EMPLOYEE;
         this.creationDate = new Date();
         updateHash();
     }
@@ -79,18 +81,18 @@ public class Order {
     }
 
     public void confirmOrCancel(boolean isConfirm) {
-        this.status = isConfirm ? OrderStatus.EXECUTING : OrderStatus.CANCELLED;
+        this.status = isConfirm ? EXECUTING : CANCELLED;
         updateHash();
     }
 
     public void pay() throws Exception {
-        if (this.status == OrderStatus.WAITING_FOR_CLIENT) { // Если организация (или её сотрудник) уточнила данные заказа
+        if (Objects.equals(this.status, WAITING_FOR_CLIENT)) { // Если организация (или её сотрудник) уточнила данные заказа
             if (!this.isPrepaymentAvailable) { // Если предоплата недоступна
                 throw NOT_ENOUGH_RIGHTS; // То отказать в выполнении метода
             }
-            this.status = OrderStatus.EXECUTING_PAID;
-        } else if (this.status == OrderStatus.WAITING_FOR_PAYMENT) {
-            this.status = OrderStatus.WAITING_FOR_TAKING; // Присвоить статус заказа "Ожидает получения"
+            this.status = EXECUTING_PAID;
+        } else if (Objects.equals(this.status, WAITING_FOR_PAYMENT)) {
+            this.status = WAITING_FOR_TAKING; // Присвоить статус заказа "Ожидает получения"
         } else {
             throw NOT_ENOUGH_RIGHTS;
         }
@@ -99,10 +101,10 @@ public class Order {
 
     public void complete() throws Exception {
         this.deliveryDate = new Date().getTime();
-        if (this.status == OrderStatus.EXECUTING) {
-            this.status = OrderStatus.WAITING_FOR_PAYMENT;
-        } else if (this.status == OrderStatus.EXECUTING_PAID) {
-            this.status = OrderStatus.WAITING_FOR_TAKING;
+        if (Objects.equals(this.status, EXECUTING)) {
+            this.status = WAITING_FOR_PAYMENT;
+        } else if (Objects.equals(this.status, EXECUTING_PAID)) {
+            this.status = WAITING_FOR_TAKING;
         } else {
             throw NOT_ENOUGH_RIGHTS;
         }
@@ -110,7 +112,7 @@ public class Order {
     }
 
     public void take() {
-        this.status = OrderStatus.TAKEN;
+        this.status = TAKEN;
         updateHash();
     }
 
@@ -140,7 +142,7 @@ public class Order {
         return deliveryDate;
     }
 
-    public OrderStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
@@ -168,7 +170,7 @@ public class Order {
         this.deliveryDate = deliveryDate;
     }
 
-    public void setStatus(OrderStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

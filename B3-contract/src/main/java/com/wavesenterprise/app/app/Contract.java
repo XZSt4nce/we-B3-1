@@ -13,6 +13,8 @@ import java.util.*;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.*;
 import static com.wavesenterprise.app.api.IContract.Keys.*;
+import static com.wavesenterprise.app.api.IContract.Roles.*;
+import static com.wavesenterprise.app.api.IContract.OrderStatuses.*;
 
 @ContractHandler
 public class Contract implements IContract {
@@ -37,17 +39,17 @@ public class Contract implements IContract {
 
     // Метод деплоя контракта
     @Override
-    public void init() throws Exception {
-        String login = "operator";
+    public void init() {
+        String login = "operatorLogin";
         String password = "123";
         String organizationTitle = "Profi";
         String organizationDescription = "Разработка решений с использованием блочейн технологий";
-        this.contractState.put(OPERATOR, login);
+        this.contractState.put(CREATOR, login);
         Organization organization = new Organization(
                 login,
                 organizationTitle,
                 organizationDescription,
-                UserRole.DISTRIBUTOR
+                DISTRIBUTOR
         );
         organizationList.add(organization);
         contractState.put(ORGANIZATIONS_LIST, organizationList);
@@ -58,7 +60,7 @@ public class Contract implements IContract {
                 "admin@adm.in",
                 new String[]{"США", "Индия", "Япония"},
                 0,
-                UserRole.OPERATOR
+                OPERATOR
         );
         userMapping.put(login, operator);
     }
@@ -76,7 +78,7 @@ public class Contract implements IContract {
             Integer organizationKey
     ) throws Exception {
         notSignedUp(login); // Проверка, что пользователя с таким логином нет в системе
-        UserRole role = UserRole.CLIENT;
+        String role = CLIENT;
 
         if (isPresent(organizationKey)) {
             if (isPresent(title) || isPresent(description)) {
@@ -86,9 +88,9 @@ public class Contract implements IContract {
             role = organization.getRole();
         } else if (isPresent(title)) {
             if (isPresent(description)) {
-                role = UserRole.SUPPLIER;
+                role = OPERATOR;
             } else {
-                role = UserRole.DISTRIBUTOR;
+                role = DISTRIBUTOR;
             }
             Organization organization = new Organization(
                     login,
@@ -126,7 +128,7 @@ public class Contract implements IContract {
             String[] regions
     ) throws Exception {
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
-        onlyRole(sender, UserRole.OPERATOR); // Метод может вызвать только оператор
+        onlyRole(sender, OPERATOR); // Метод может вызвать только оператор
         User user = userExist(userPublicKey);
 
         // Если пользователь уже активирован, то отменить выполнение метода
@@ -165,7 +167,7 @@ public class Contract implements IContract {
             String userPublicKey
     ) throws Exception {
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
-        onlyRole(sender, UserRole.OPERATOR); // Выполнять метод может только оператор
+        onlyRole(sender, OPERATOR); // Выполнять метод может только оператор
         userExist(userPublicKey);
 
         // Если оператор пытается заблокировать сам себя, то отказать в выполнении метода
@@ -187,7 +189,7 @@ public class Contract implements IContract {
             String[] regions
     ) throws Exception {
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
-        onlyRole(sender, UserRole.SUPPLIER); // Выполнять метод может только поставщик
+        onlyRole(sender, SUPPLIER); // Выполнять метод может только поставщик
         productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
         int productId = productList.size();
         user.addProductProvided(productId);
@@ -208,7 +210,7 @@ public class Contract implements IContract {
             String[] distributors
     ) throws Exception {
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
-        onlyRole(sender, UserRole.OPERATOR); // Выполнять метод может только оператор
+        onlyRole(sender, OPERATOR); // Выполнять метод может только оператор
         Product product = productExist(productKey); // Проверка на то, что продукт существует в системе
 
         // Если список дистрибуторов пустой, то отказать в выполнении метода
@@ -267,12 +269,12 @@ public class Contract implements IContract {
             throw TOO_MANY_PRODUCTS;
         }
 
-        if (user.getRole() == UserRole.CLIENT) {
-            onlyRole(executorKey, UserRole.DISTRIBUTOR);
+        if (Objects.equals(user.getRole(), CLIENT)) {
+            onlyRole(executorKey, DISTRIBUTOR);
             approvedDistributor(executorKey, productKey);
         } else {
-            onlyRole(sender, UserRole.DISTRIBUTOR);
-            onlyRole(executorKey, UserRole.SUPPLIER);
+            onlyRole(sender, DISTRIBUTOR);
+            onlyRole(executorKey, SUPPLIER);
             if (executor.getProducts().get(productKey) < count) {
                 throw NOT_ENOUGH_PRODUCTS;
             }
@@ -301,7 +303,7 @@ public class Contract implements IContract {
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
         onlyExecutor(sender, orderKey); // Вызвать метод может только исполнитель, у которого был совершён заказ
-        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_EMPLOYEE); // Чтобы уточнить данные, заказ должен быть только создан
+        onlyOrderStatus(orderKey, WAITING_FOR_EMPLOYEE); // Чтобы уточнить данные, заказ должен быть только создан
         // Если организацией (или её сотрудником) была изменена дата доставки, то перезаписать её
         deliveryLimit = deliveryLimit == 0 ? order.getDeliveryDate() : deliveryLimit;
         order.clarify(totalPrice, deliveryLimit, isPrepaymentAvailable); // Уточнение данных
@@ -319,7 +321,7 @@ public class Contract implements IContract {
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
         onlyClient(sender, orderKey); // Вызвать метод может только клиент, который привязан к заказу
-        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_CLIENT); // Чтобы принять/отвергнуть новые условия, заказ должен быть только уточнён
+        onlyOrderStatus(orderKey, WAITING_FOR_CLIENT); // Чтобы принять/отвергнуть новые условия, заказ должен быть только уточнён
         // Если у пользователя не хватает денег на оплату заказа, то отказать в выполнении метода
         if (isConfirm && user.getBalance() < order.getPrice()) {
             throw NOT_ENOUGH_FUNDS;
@@ -374,7 +376,7 @@ public class Contract implements IContract {
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
         onlyClient(sender, orderKey); // Вызвать метод может только клиент, который привязан к заказу
-        onlyOrderStatus(orderKey, OrderStatus.WAITING_FOR_TAKING); // Чтобы забрать продукта, заказ должен быть готов
+        onlyOrderStatus(orderKey, WAITING_FOR_TAKING); // Чтобы забрать продукта, заказ должен быть готов
         {
             // Добавление продукта(-ов) клиенту
             user.incProduct(order.getProductKey(), order.getAmount());
@@ -426,9 +428,9 @@ public class Contract implements IContract {
         }
     }
 
-    private void onlyRole(String userPublicKey, UserRole role) throws Exception {
-        UserRole userRole = userExist(userPublicKey).getRole();
-        if (userRole != role && (role != UserRole.DISTRIBUTOR || userRole != UserRole.OPERATOR)) {
+    private void onlyRole(String userPublicKey, String role) throws Exception {
+        String userRole = userExist(userPublicKey).getRole();
+        if (!Objects.equals(userRole, role) && (!Objects.equals(role, DISTRIBUTOR) || !Objects.equals(userRole, OPERATOR))) {
             throw NOT_ENOUGH_RIGHTS;
         }
     }
@@ -441,9 +443,9 @@ public class Contract implements IContract {
         }
     }
 
-    private void onlyOrderStatus(int orderKey, OrderStatus status) throws Exception {
+    private void onlyOrderStatus(int orderKey, String status) throws Exception {
         Order order = orderExist(orderKey);
-        if (order.getStatus() != status) {
+        if (!Objects.equals(order.getStatus(), status)) {
             throw NOT_ENOUGH_RIGHTS;
         }
     }

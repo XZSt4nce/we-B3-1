@@ -9,8 +9,8 @@ export const UserList = () => {
 
     return (
         <WhiteBlock title={"Пользователи"}>
-            {users.length === 0 ? <EmptyListPlug /> : users.map((user, idx) => (
-                <User user={user} key={idx} />
+            {Object.keys(users).length === 0 ? <EmptyListPlug /> : Object.keys(users).map((userKey, idx) => (
+                <User userStruct={users[userKey]} key={idx} />
             ))}
         </WhiteBlock>
     );

@@ -4,6 +4,7 @@ import java.util.*;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_FUNDS;
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_PRODUCTS;
+import static com.wavesenterprise.app.api.IContract.Roles.OPERATOR;
 
 public class User {
     private String login;
@@ -15,7 +16,7 @@ public class User {
     private List<Integer> productsProvided;
     private Map<Integer, Integer> products;
     private List<Integer> orders;
-    private UserRole role;
+    private String role;
     private boolean isActivated;
     private boolean isBlocked;
     private int organizationKey;
@@ -29,7 +30,7 @@ public class User {
             String email,
             String[] regions,
             int organizationKey,
-            UserRole role
+            String role
     ) {
         this.login = login;
         this.password = password;
@@ -41,7 +42,7 @@ public class User {
         this.products = new HashMap<>();
         this.orders = new ArrayList<>();
         this.isBlocked = false;
-        this.isActivated = role == UserRole.OPERATOR;
+        this.isActivated = Objects.equals(role, OPERATOR);
         this.role = role;
         this.organizationKey = organizationKey;
     }
@@ -92,7 +93,7 @@ public class User {
         this.email = email;
     }
 
-    public UserRole getRole() {
+    public String getRole() {
         return role;
     }
 
@@ -194,7 +195,7 @@ public class User {
         this.orders = orders;
     }
 
-    public void setRole(UserRole role) {
+    public void setRole(String role) {
         this.role = role;
     }
 

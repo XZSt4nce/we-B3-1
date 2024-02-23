@@ -6,7 +6,7 @@ import com.wavesenterprise.sdk.contract.api.annotation.InvokeParam;
 
 public interface IContract {
     @ContractInit
-    void init() throws Exception;
+    void init();
 
     @ContractAction
     void signUp(
@@ -109,11 +109,29 @@ public interface IContract {
     ) throws Exception;
 
     class Keys {
-        public static final String OPERATOR = "OPERATOR";
+        public static final String CREATOR = "CREATOR";
         public static final String USERS_MAPPING_PREFIX = "USERS";
         public static final String ORDERS_LIST = "ORDERS";
         public static final String PRODUCTS_LIST = "PRODUCTS";
         public static final String ORGANIZATIONS_LIST = "ORGANIZATIONS";
+    }
+
+    class Roles {
+        public static final String OPERATOR = "OPERATOR";
+        public static final String DISTRIBUTOR = "DISTRIBUTOR";
+        public static final String SUPPLIER = "SUPPLIER";
+        public static final String CLIENT = "CLIENT";
+    }
+
+    class OrderStatuses {
+        public static final String WAITING_FOR_CLIENT = "WAITING_FOR_CLIENT";
+        public static final String WAITING_FOR_EMPLOYEE = "WAITING_FOR_EMPLOYEE";
+        public static final String WAITING_FOR_PAYMENT = "WAITING_FOR_PAYMENT";
+        public static final String EXECUTING = "EXECUTING";
+        public static final String EXECUTING_PAID = "EXECUTING_PAID";
+        public static final String CANCELLED = "CANCELLED";
+        public static final String WAITING_FOR_TAKING = "WAITING_FOR_TAKING";
+        public static final String TAKEN = "TAKEN";
     }
 
     class Exceptions {

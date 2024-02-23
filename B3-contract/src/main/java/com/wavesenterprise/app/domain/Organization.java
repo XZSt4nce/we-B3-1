@@ -4,7 +4,7 @@ import java.util.List;
 public class Organization {
     private String title;
     private String description;
-    private UserRole role;
+    private String role;
     private List<String> employee;
 
     public Organization() {}
@@ -13,7 +13,7 @@ public class Organization {
         String sender,
         String title,
         String description,
-        UserRole role
+        String role
     ) {
         this.title = title;
         this.description = description;
@@ -29,7 +29,7 @@ public class Organization {
         this.description = description;
     }
 
-    public UserRole getRole() {
+    public String getRole() {
         return role;
     }
 
@@ -53,7 +53,7 @@ public class Organization {
         this.title = title;
     }
 
-    public void setRole(UserRole role) {
+    public void setRole(String role) {
         this.role = role;
     }
 }

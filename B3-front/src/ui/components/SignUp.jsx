@@ -76,7 +76,7 @@ export const SignUp = () => {
                     <Control controlId={"region"} label={"Регион"} placeholder={"Введите Ваш регион"} />
                 ) : (
                     <>
-                        <Control controlId={"regions"} label={"Регионы"} placeholder={"Введите регион(-ы), в которых Вы будете распространять товары"} />
+                        <Control controlId={"regions"} label={"Регионы"} placeholder={"Через запятую введите регион(-ы), в которых Вы будете распространять товары"} />
                         <Form.Check
                             type={"checkbox"}
                             id={"isEmployee"}

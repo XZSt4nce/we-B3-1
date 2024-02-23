@@ -7,6 +7,7 @@ import {ProductsList} from "../components/ProductsList";
 
 export const User = ({userStruct}) => {
     const {user, activateUser, blockUser, organizations, products} = useContext(Context);
+    console.log(userStruct);
 
     const handleActivate = async (ev) => {
         ev.preventDefault();
@@ -61,7 +62,7 @@ export const User = ({userStruct}) => {
                     <>
                         <Card.Text>Название организации: {organizations[userStruct.organizationKey].title}</Card.Text>
                         <Card.Text>Описание организации: {organizations[userStruct.organizationKey].description}</Card.Text>
-                        <Card.Text>Регионы распространения: {userStruct.regions}</Card.Text>
+                        <Card.Text>Регионы распространения: {userStruct.regions.join(", ")}</Card.Text>
                         <Card.Text>ФИО: {userStruct.fullName}</Card.Text>
                         <Card.Text>E-mail: {userStruct.email}</Card.Text>
                         <Card.Text>Роль: {UserRole[userStruct.role]}</Card.Text>
