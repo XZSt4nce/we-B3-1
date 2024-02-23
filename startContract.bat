@@ -1,5 +1,5 @@
 @ECHO OFF
-SET contractName=test_b3_2
+SET contractName=b3-contract
 SET tag=1.0.0
 SET imageHost=localhost:5000
 SET imageURL=%imageHost%/%contractName%:%tag%
