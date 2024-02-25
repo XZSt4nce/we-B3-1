@@ -5,7 +5,7 @@ import {Control} from "../kit/FormGroups/Control";
 import {WhiteBlock} from "./HOCs/WhiteBlock";
 
 export const CreateProductForm = () => {
-    const {createProduct} = useContext(Context);
+    const {createProduct, actionExecuting} = useContext(Context);
 
     const handler = async (ev) => {
         ev.preventDefault();
@@ -21,7 +21,7 @@ export const CreateProductForm = () => {
                 <Control controlId={"title"} label={"Название"} />
                 <Control controlId={"description"} label={"Описание"} />
                 <Control controlId={"regions"} label={"Регионы"} placeholder={"Введите через запятую регионы"} />
-                <Button type={"submit"}>Создать</Button>
+                <Button disabled={actionExecuting} type={"submit"}>Создать</Button>
             </Form>
         </WhiteBlock>
     );

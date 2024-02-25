@@ -1,8 +1,8 @@
 import React, {createContext, useState} from 'react';
-import Service from "../service/Service";
+import ServiceRequest from "../service/ServiceRequest";
 import {ContractKeys} from "../constants/ContractKeys";
 import {Errors} from "../constants/Errors";
-import {contractAddress} from "../constants/ContractAddress.js";
+import ServiceContract from "../service/ServiceContract";
 
 export const Context = createContext({});
 export const ContextWrapper = ({children}) => {
@@ -12,17 +12,18 @@ export const ContextWrapper = ({children}) => {
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
     const [organizations, setOrganizations] = useState([]);
+    const [actionExecuting, setActionExecuting] = useState(false);
 
     const getContractValues = async () => {
-        const getMappingObjects = (data, prefix) => {
+        function getMappingObjects (data, prefix) {
             const objectsData = {};
             Object.keys(data)
                 .filter(key => key.startsWith(prefix))
-                .forEach(key => objectsData[key] = data[key]);
+                .forEach(key => objectsData[key.slice(prefix.length + 1)] = data[key]);
             return objectsData;
-        };
+        }
 
-        const response = await Service.get(`contracts/${contractAddress}`);
+        const response = await ServiceRequest.getContractValues();
         const data = {};
         response.forEach(el => {
             try {
@@ -36,134 +37,56 @@ export const ContextWrapper = ({children}) => {
         setProducts(data[ContractKeys.PRODUCTS_LIST]);
         setOrders(data[ContractKeys.ORDERS_LIST]);
         setOrganizations(data[ContractKeys.ORGANIZATIONS_LIST]);
-    };
+    }
 
     const signUp = async (login, password, title, description, fullName, email, regions, organizationKey) => {
-        const handler = async() => {
-            if (login in users) {
-                alert(Errors.USER_ALREADY_EXIST);
-            } else {
-                await Service.getContractKey(contractAddress, `${ContractKeys.USERS_MAPPING_PREFIX}_${login}`)
-                    .then((data) => {
-                        if (data) {
-                            setUsers({...users, login: data});
-                        }
-                    });
-            }
-        };
-
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "signUp",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": login,
-                "key": "login"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "string",
-                "value": title,
-                "key": "title"
-            },
-            {
-                "type": "string",
-                "value": description,
-                "key": "description"
-            },
-            {
-                "type": "string",
-                "value": fullName,
-                "key": "fullName"
-            },
-            {
-                "type": "string",
-                "value": email,
-                "key": "email"
-            },
-            {
-                "type": "string",
-                "value": JSON.stringify(regions),
-                "key": "regions"
-            },
-            {
-                "type": "integer",
-                "value": organizationKey,
-                "key": "organizationKey"
-            }
-        ],  contractAddress)
-            .then((data) => {
-                if (data) {
-                    waitThreeSeconds(handler);
-                }
-            });
+        if (login in users) {
+            alert(Errors.USER_ALREADY_EXIST);
+        } else {
+            await ServiceContract.signUp(login, password, title, description, fullName, email, regions, organizationKey)
+                .then((data) => {
+                    if (data) {
+                        waitTransaction(data.id, async () => {
+                            await updateUser(login);
+                            alert("Заявка на регистрацию в системе отправлена оператору");
+                        });
+                    }
+                });
+        }
     };
 
     const activateUser = async (userPublicKey, description, fullName, email, regions) => {
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "signUpClient",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "string",
-                "value": userPublicKey,
-                "key": "userPublicKey"
-            },
-            {
-                "type": "string",
-                "value": description,
-                "key": "description"
-            },
-            {
-                "type": "string",
-                "value": fullName,
-                "key": "fullName"
-            },
-            {
-                "type": "string",
-                "value": email,
-                "key": "email"
-            },
-            {
-                "type": "string",
-                "value": JSON.stringify(regions),
-                "key": "regions"
-            }
-        ], contractAddress)
-            .then((data) => {
-                if (data) {
-                    waitThreeSeconds(() => updateUser(userPublicKey));
-                }
-            });
+        if (userPublicKey in users) {
+            await ServiceContract.activateUser(user.login, password, userPublicKey, description, fullName, email, regions)
+                .then((data) => {
+                    if (data) {
+                        waitTransaction(data.id, async () => await updateUser(userPublicKey));
+                    }
+                });
+        } else {
+            alert(Errors.USER_NOT_FOUND);
+        }
     };
 
     const signIn = async (login, password) => {
-        const selectedUser = users[`${ContractKeys.USERS_MAPPING_PREFIX}_${login}`];
-        if (selectedUser?.password === await sha256(login + password)) {
-            if (selectedUser.blocked) {
-                alert(Errors.USER_BLOCKED);
+        if (login in users) {
+            const selectedUser = users[login];
+            const passwdBuffer = new TextEncoder('utf-8').encode(login + password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', passwdBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const providedPassword = hashArray.map(b => ('00' + b.toString(16)).slice(-2)).join('');
+
+            if (selectedUser.password === providedPassword) {
+                if (selectedUser.blocked) {
+                    alert(Errors.USER_BLOCKED);
+                } else if (!selectedUser.activated) {
+                    alert(Errors.USER_NOT_ACTIVATED);
+                } else {
+                    setUser(selectedUser);
+                    setPassword(password);
+                }
             } else {
-                setUser(selectedUser);
-                setPassword(password);
+                alert(Errors.INCORRECT_LOGIN);
             }
         } else {
             alert(Errors.INCORRECT_LOGIN);
@@ -177,421 +100,181 @@ export const ContextWrapper = ({children}) => {
     };
 
     const blockUser = async (userPublicKey) => {
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "blockUser",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "string",
-                "value": userPublicKey,
-                "key": "userPublicKey"
-            }
-        ], contractAddress)
+        await ServiceContract.blockUser(user.login, password, userPublicKey)
             .then((data) => {
                 if (data) {
-                    waitThreeSeconds(() => updateUser(userPublicKey));
+                    waitTransaction(data.id, async () => await updateUser(userPublicKey));
                 }
             });
     };
 
     const createProduct = async (title, description, regions) => {
-        const handler = async () => {
-            await Service.getContractKey(contractAddress, ContractKeys.PRODUCTS_LIST)
-                .then((data) => {
-                    if (data) {
-                        setProducts(data);
-                    }
-                });
-        };
-
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "createProduct",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "string",
-                "value": title,
-                "key": "title"
-            },
-            {
-                "type": "string",
-                "value": description,
-                "key": "description"
-            },
-            {
-                "type": "string",
-                "value": JSON.stringify(regions),
-                "key": "regions"
-            }
-        ], contractAddress)
+        await ServiceContract.createProduct(user.login, password, title, description, regions)
             .then((data) => {
                 if (data) {
-                    waitThreeSeconds(handler);
+                    waitTransaction(data.id, async () => {
+                        await updateProducts();
+                        await updateUser(user.login);
+                        alert("Заявка на создание продукта отправлена оператору");
+                    });
                 }
             });
     };
 
     const confirmProduct = async (productKey, description, regions, minOrderCount, maxOrderCount, distributors) => {
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "confirmProduct",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "integer",
-                "value": productKey,
-                "key": "productKey"
-            },
-            {
-                "type": "string",
-                "value": description,
-                "key": "description"
-            },
-            {
-                "type": "string",
-                "value": JSON.stringify(regions),
-                "key": "regions"
-            },
-            {
-                "type": "integer",
-                "value": minOrderCount,
-                "key": "minOrderCount"
-            },
-            {
-                "type": "integer",
-                "value": maxOrderCount,
-                "key": "maxOrderCount"
-            },
-            {
-                "type": "string",
-                "value": JSON.stringify(distributors),
-                "key": "distributors"
-            },
-        ], contractAddress)
-            .then((data) => {
-                if (data) {
-                    waitThreeSeconds(() => updateProduct(productKey));
-                }
-            });
-    };
-
-    const makeOrder = async (productKey, organization, count, desiredDeliveryLimit, deliveryAddress) => {
-        const handler = async() => {
-            await Service.getContractKey(contractAddress, ContractKeys.ORDERS_LIST)
+        if (productKey >= products.length) {
+            alert(Errors.PRODUCT_NOT_FOUND);
+        } else if (productKey < 0) {
+            alert(Errors.INCORRECT_DATA);
+        } else {
+            await ServiceContract.confirmProduct(user.login, password, productKey, description, regions, minOrderCount, maxOrderCount, distributors)
                 .then((data) => {
                     if (data) {
-                        setOrders(data);
+                        waitTransaction(data.id, updateProducts);
                     }
                 });
-        };
+        }
+    };
 
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "makeOrder",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "integer",
-                "value": productKey,
-                "key": "productKey"
-            },
-            {
-                "type": "string",
-                "value": organization,
-                "key": "organization"
-            },
-            {
-                "type": "integer",
-                "value": count,
-                "key": "count"
-            },
-            {
-                "type": "integer",
-                "value": desiredDeliveryLimit,
-                "key": "desiredDeliveryLimit"
-            },
-            {
-                "type": "string",
-                "value": deliveryAddress,
-                "key": "deliveryAddress"
-            },
-        ], contractAddress)
-            .then((data) => {
-                if (data) {
-                    waitThreeSeconds(handler);
-                }
-            });
+    const makeOrder = async (productKey, executorKey, count, desiredDeliveryLimit, deliveryAddress) => {
+        if (productKey >= products.length) {
+            alert(Errors.PRODUCT_NOT_FOUND);
+        } else if (productKey < 0) {
+            alert(Errors.INCORRECT_DATA);
+        } else if (!(executorKey in users)) {
+            alert(Errors.USER_NOT_FOUND);
+        } else {
+            await ServiceContract.makeOrder(user.login, password, productKey, executorKey, count, desiredDeliveryLimit, deliveryAddress)
+                .then((data) => {
+                    if (data) {
+                        waitTransaction(data.id, async () => {
+                            await updateOrders();
+                            await updateUser(user.login);
+                            await updateUser(executorKey);
+                        });
+                    }
+                });
+        }
     };
 
     const clarifyOrder = async (orderKey, totalPrice, deliveryLimit, isPrepaymentAvailable) => {
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "clarifyOrder",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "integer",
-                "value": orderKey,
-                "key": "orderKey"
-            },
-            {
-                "type": "integer",
-                "value": totalPrice,
-                "key": "totalPrice"
-            },
-            {
-                "type": "integer",
-                "value": deliveryLimit,
-                "key": "deliveryLimit"
-            },
-            {
-                "type": "boolean",
-                "value": isPrepaymentAvailable,
-                "key": "isPrepaymentAvailable"
-            },
-        ], contractAddress)
-            .then((data) => {
-                if (data) {
-                    waitThreeSeconds(() => updateOrder(orderKey));
-                }
-            });
+        if (orderKey >= orders.length) {
+            alert(Errors.ORDER_NOT_FOUND);
+        } else if (orderKey < 0) {
+            alert(Errors.INCORRECT_DATA);
+        } else {
+            await ServiceContract.clarifyOrder(user.login, password, orderKey, totalPrice, deliveryLimit, isPrepaymentAvailable)
+                .then((data) => {
+                    if (data) {
+                        waitTransaction(data.id, updateOrders);
+                    }
+                });
+        }
     };
 
     const confirmOrCancelOrder = async (orderKey, isConfirm) => {
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "confirmOrCancelOrder",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "integer",
-                "value": orderKey,
-                "key": "orderKey"
-            },
-            {
-                "type": "boolean",
-                "value": isConfirm,
-                "key": "isConfirm"
-            },
-        ], contractAddress)
-            .then((data) => {
-                if (data) {
-                    waitThreeSeconds(() => updateOrder(orderKey));
-                }
-            });
+        if (orderKey >= orders.length) {
+            alert(Errors.ORDER_NOT_FOUND);
+        } else if (orderKey < 0) {
+            alert(Errors.INCORRECT_DATA);
+        } else {
+            await ServiceContract.confirmOrCancelOrder(user.login, password, orderKey, isConfirm)
+                .then((data) => {
+                    if (data) {
+                        waitTransaction(data.id, updateOrders);
+                    }
+                });
+        }
     };
 
     const payOrder = async (orderKey) => {
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "payOrder",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "integer",
-                "value": orderKey,
-                "key": "orderKey"
-            }
-        ], contractAddress)
-            .then((data) => {
-                if (data) {
-                    waitThreeSeconds(() => updateOrder(orderKey));
-                }
-            });
+        if (orderKey >= orders.length) {
+            alert(Errors.ORDER_NOT_FOUND);
+        } else if (orderKey < 0) {
+            alert(Errors.INCORRECT_DATA);
+        } else {
+            await ServiceContract.payOrder(user.login, password, orderKey)
+                .then((data) => {
+                    if (data) {
+                        waitTransaction(data.id, updateOrders);
+                    }
+                });
+        }
     };
 
     const completeOrder = async (orderKey) => {
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "completeOrder",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "integer",
-                "value": orderKey,
-                "key": "orderKey"
-            }
-        ], contractAddress)
-            .then((data) => {
-                if (data) {
-                    waitThreeSeconds(() => updateOrder(orderKey));
-                }
-            });
+        if (orderKey >= orders.length) {
+            alert(Errors.ORDER_NOT_FOUND);
+        } else if (orderKey < 0) {
+            alert(Errors.INCORRECT_DATA);
+        } else {
+            await ServiceContract.completeOrder(user.login, password, orderKey)
+                .then((data) => {
+                    if (data) {
+                        waitTransaction(data.id, updateOrders);
+                    }
+                });
+        }
     };
 
     const takeOrder = async (orderKey) => {
-        return await Service.signAndBroadcast([
-            {
-                "type": "string",
-                "value": "takeOrder",
-                "key": "action"
-            },
-            {
-                "type": "string",
-                "value": user.login,
-                "key": "sender"
-            },
-            {
-                "type": "string",
-                "value": password,
-                "key": "password"
-            },
-            {
-                "type": "integer",
-                "value": orderKey,
-                "key": "orderKey"
-            }
-        ], contractAddress)
+        if (orderKey >= orders.length) {
+            alert(Errors.ORDER_NOT_FOUND);
+        } else if (orderKey < 0) {
+            alert(Errors.INCORRECT_DATA);
+        } else {
+            await ServiceContract.takeOrder(user.login, password, orderKey)
+                .then((data) => {
+                    if (data) {
+                        waitTransaction(data.id, updateOrders);
+                    }
+                });
+        }
+    };
+
+    async function waitTransaction(txID, callback) {
+        setActionExecuting(true);
+        const intervalId = setInterval(async () => {
+            console.log(123);
+            await ServiceRequest.getUnconfirmedTransaction(txID)
+                .then((data) => {
+                    console.log(data);
+                    if (!data) {
+                        setActionExecuting(false);
+                        callback();
+                        clearInterval(intervalId);
+                    }
+                })
+                .catch(e => alert(e));
+        }, 2000);
+    }
+
+    async function updateUser(userPublicKey) {
+        await ServiceRequest.getContractKey(`${ContractKeys.USERS_MAPPING_PREFIX}_${userPublicKey}`)
             .then((data) => {
                 if (data) {
-                    waitThreeSeconds(() => updateOrder(orderKey));
+                    setUsers({...users, login: data});
                 }
             });
-    };
+    }
 
-    const sha256 = async (passwd) => {
-        const passwdBuffer = new TextEncoder('utf-8').encode(passwd);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', passwdBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => ('00' + b.toString(16)).slice(-2)).join('');
-    };
+    async function updateOrders() {
+        await ServiceRequest.getContractKey(ContractKeys.ORDERS_LIST)
+            .then((data) => {
+                if (data) {
+                    setOrders(data);
+                }
+            });
+    }
 
-    const waitThreeSeconds = (callback) => {
-        setTimeout(callback, 3000);
-    };
-
-    const updateUser = async (userPublicKey) => {
-        if (userPublicKey in users) {
-            await Service.getContractKey(contractAddress, `${ContractKeys.USERS_MAPPING_PREFIX}_${userPublicKey}`)
-                .then((data) => {
-                    if (data) {
-                        setUsers({...users, login: data});
-                    }
-                });
-        } else {
-            alert(Errors.USER_NOT_FOUND);
-        }
-    };
-
-    const updateOrder = async (orderKey) => {
-        if (orderKey > orders.length - 1 || orderKey < 0) {
-            alert(Errors.ORDER_NOT_FOUND);
-        } else {
-            await Service.getContractKey(contractAddress, `${ContractKeys.ORDERS_LIST}_${orderKey}`)
-                .then((data) => {
-                    if (data) {
-                        const newOrders = [...orders];
-                        newOrders[orderKey] = data;
-                        setOrders(newOrders);
-                    }
-                });
-        }
-    };
-
-    const updateProduct = async (productKey) => {
-        if (productKey > products.length - 1 || productKey < 0) {
-            alert(Errors.PRODUCT_NOT_FOUND);
-        } else {
-            await Service.getContractKey(contractAddress, `${ContractKeys.PRODUCTS_LIST}_${productKey}`)
-                .then((data) => {
-                    if (data) {
-                        const newProducts = [...products];
-                        newProducts[productKey] = data;
-                        setOrders(newProducts);
-                    }
-                });
-        }
-    };
+    async function updateProducts(){
+        await ServiceRequest.getContractKey(ContractKeys.PRODUCTS_LIST)
+            .then((data) => {
+                if (data) {
+                    setProducts(data);
+                }
+            });
+    }
 
     const values = {
         user,
@@ -599,6 +282,7 @@ export const ContextWrapper = ({children}) => {
         products,
         orders,
         organizations,
+        actionExecuting,
         getContractValues,
         signUp,
         activateUser,

@@ -6,7 +6,7 @@ import {Link} from "react-router-dom";
 import {Errors} from "../../constants/Errors";
 
 export const Product = ({product, amount, isOrderProduct=false, inStock=false}) => {
-    const {user, users, makeOrder, confirmProduct} = useContext(Context);
+    const {user, users, makeOrder, confirmProduct, actionExecuting} = useContext(Context);
 
     const cardBody = (
         <Card.Body>
@@ -41,30 +41,31 @@ export const Product = ({product, amount, isOrderProduct=false, inStock=false}) 
         }
     };
 
-    const cardFooter = ({executor}) =>
+    const cardFooter = (executor) =>
         ((user.role === "CLIENT" && (users[executor].role === "DISTRIBUTOR" || users[executor].role === "OPERATOR"))
             || ((user.role === "DISTRIBUTOR" || user.role === "OPERATOR") && users[executor].role === "SUPPLIER")) && (
-                <>
-                    {!product.confirmed ? (
-                        <Card.Footer>
-                            <Form onSubmit={handleConfirmProduct}>
-                                <Control controlId={"description"} label={"Описание"} defaultValue={product.description} />
-                                <Control controlId={"regions"} label={"Регионы"} placeholder={"Введите через запятую регионы"} defaultValue={product.regions.join(", ")} />
-                                <Control controlId={"minOrderCount"} min={0} type={"number"} label={"Минимальное количество за заказ"} />
-                                <Control controlId={"maxOrderCount"} min={0} type={"number"} label={"Максимальное количество за заказ"} />
-                                <Control controlId={"distributors"} label={"Дистрибуторы"} placeholder={"Введите через запятую дистрибуторов"} />
-                                <Button type={"submit"}>Подтвердить</Button>
-                            </Form>
-                        </Card.Footer>
-                    ) : !isOrderProduct && (
-                        <Card.Footer>
-                            <Card.Text>В наличии: {users[executor].productsProvided[product.id] ?? 0}шт.</Card.Text>
-                            <Form onSubmit={handleMakeOrder}>
+            <>
+                {!product.confirmed ? (
+                    <Card.Footer>
+                        <Form onSubmit={handleConfirmProduct}>
+                            <Control controlId={"description"} label={"Описание"} defaultValue={product.description} />
+                            <Control controlId={"regions"} label={"Регионы"} placeholder={"Введите через запятую регионы"} defaultValue={product.regions.join(", ")} />
+                            <Control controlId={"minOrderCount"} min={0} type={"number"} label={"Минимальное количество за заказ"} />
+                            <Control controlId={"maxOrderCount"} min={0} type={"number"} label={"Максимальное количество за заказ"} />
+                            <Control controlId={"distributors"} label={"Дистрибуторы"} placeholder={"Введите через запятую дистрибуторов"} />
+                            <Button disabled={actionExecuting} type={"submit"}>Подтвердить</Button>
+                        </Form>
+                    </Card.Footer>
+                ) : !isOrderProduct && (
+                    <Card.Footer>
+                        <Card.Text>В наличии: {users[executor].productsProvided[product.id] ?? 0} шт.</Card.Text>
+                        {(product.minOrderCount <= users[executor].productsProvided[product.id] ?? 0) && (
+                            <Form onSubmit={(ev) => handleMakeOrder(ev, executor)}>
                                 <Control
                                     controlId={"count"}
                                     type={"number"}
                                     label={"Количество"}
-                                    min={product.minOrderCount === 0 ? 1 : product.minOrderCount}
+                                    min={product.minOrderCount}
                                     max={product.maxOrderCount === 0 ? null : product.maxOrderCount}
                                 />
                                 <Control
@@ -74,28 +75,29 @@ export const Product = ({product, amount, isOrderProduct=false, inStock=false}) 
                                     min={new Date().toISOString().split("T")[0]}
                                 />
                                 <Control controlId={"deliveryAddress"} label={"Адрес доставки"} />
-                                <Button type={"submit"}>Заказать</Button>
+                                <Button disabled={actionExecuting} type={"submit"}>Заказать</Button>
                             </Form>
-                        </Card.Footer>
-                    )}
-                </>
-        )
+                        )}
+                    </Card.Footer>
+                )}
+            </>
+        );
 
-    return (amount > 0 || !inStock) && (
+    return user.role === "CLIENT" ? (
         <>
-            {user.role === "CLIENT" ? product.distributors.map(distributor => (
-                <Card>
-                    <Link to={`/user/${distributor.login}`}>Дистрибутор: {distributor.login}</Link>
+            {(amount > 0 || !inStock) && product.distributors.map((distributor, idx) => (
+                <Card className={"p-2"} key={idx}>
+                    <Link to={`/user/${distributor}`}>Дистрибутор: {distributor}</Link>
                     {cardBody}
                     {cardFooter(distributor)}
                 </Card>
-            )) : (
-                <Card>
-                    <Link to={`/user/${product.mader}`}>Производитель: {product.mader}</Link>
-                    {cardBody}
-                    {cardFooter(product.mader)}
-                </Card>
-            )}
+            ))}
         </>
+    ) : (
+        <Card>
+            <Link to={`/user/${product.mader}`}>Производитель: {product.mader}</Link>
+            {cardBody}
+            {cardFooter(product.mader)}
+        </Card>
     );
 };

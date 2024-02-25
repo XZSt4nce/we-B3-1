@@ -3,6 +3,12 @@ package com.wavesenterprise.app.app;
 import com.google.common.hash.Hashing;
 import com.wavesenterprise.app.api.IContract;
 import com.wavesenterprise.app.domain.*;
+import com.wavesenterprise.app.dto.order.*;
+import com.wavesenterprise.app.dto.product.ConfirmationDTO;
+import com.wavesenterprise.app.dto.product.CreationDTO;
+import com.wavesenterprise.app.dto.user.ActivationDTO;
+import com.wavesenterprise.app.dto.user.BlockDTO;
+import com.wavesenterprise.app.dto.user.RegistrationDto;
 import com.wavesenterprise.sdk.contract.api.annotation.ContractHandler;
 import com.wavesenterprise.sdk.contract.api.state.ContractState;
 import com.wavesenterprise.sdk.contract.api.state.TypeReference;
@@ -39,7 +45,7 @@ public class Contract implements IContract {
 
     // Метод деплоя контракта
     @Override
-    public void init() {
+    public void init() throws Exception {
         String login = "operatorLogin";
         String password = "123";
         String organizationTitle = "Profi";
@@ -63,20 +69,63 @@ public class Contract implements IContract {
                 OPERATOR
         );
         userMapping.put(login, operator);
+
+        addUser(
+                "supplier",
+                "123",
+                "SuperSupplier",
+                "Wow description",
+                "Саплаер Саплаеров Саплаерович",
+                "supplier@mail.ru",
+                new String[]{"USA", "RUSSIA"},
+                SUPPLIER
+        );
+
+        addUser(
+                "distributor",
+                "123",
+                "SuperDistributor",
+                null,
+                "Дистрибутор Дистрибуторов Дистрибуторович",
+                "distributor@mail.ru",
+                new String[]{"USA", "Japan", "usa"},
+                DISTRIBUTOR
+        );
+
+        addUser(
+                "client",
+                "123",
+                null,
+                null,
+                "Клиент Клиентов Клиентович",
+                "client@mail.ru",
+                new String[]{"RUSSIA"},
+                CLIENT
+        );
+
+        addProduct(
+                "supplier",
+                "Банан",
+                "Свежий, жёлтый, большой",
+                new String[]{"USA"},
+                1,
+                0,
+                new String[]{"distributor"}
+        );
     }
 
     // Метод регистрации
     @Override
-    public void signUp(
-            String login,
-            String password,
-            String title,
-            String description,
-            String fullName,
-            String email,
-            String[] regions,
-            Integer organizationKey
-    ) throws Exception {
+    public void signUp(RegistrationDto registrationDTO) throws Exception {
+        String login = registrationDTO.getLogin();
+        String password = registrationDTO.getPassword();
+        String title = registrationDTO.getTitle();
+        String description = registrationDTO.getDescription();
+        String fullName = registrationDTO.getFullName();
+        String email = registrationDTO.getEmail();
+        String[] regions = registrationDTO.getRegions();
+        int organizationKey = registrationDTO.getOrganizationKey();
+
         notSignedUp(login); // Проверка, что пользователя с таким логином нет в системе
         String role = CLIENT;
 
@@ -99,6 +148,7 @@ public class Contract implements IContract {
                     role
             );
             organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<>() {});
+            organizationKey = organizationList.size();
             organizationList.add(organization);
             contractState.put(ORGANIZATIONS_LIST, organizationList);
         } else if (isPresent(description)) {
@@ -119,14 +169,14 @@ public class Contract implements IContract {
 
     // Метод активации пользователя в системе
     @Override
-    public void activateUser(
-            String sender,
-            String password,
-            String userPublicKey,
-            String fullName,
-            String email,
-            String[] regions
-    ) throws Exception {
+    public void activateUser(ActivationDTO activationDTO) throws Exception {
+        String sender = activationDTO.getSender();
+        String password = activationDTO.getPassword();
+        String userPublicKey = activationDTO.getUserPublicKey();
+        String fullName = activationDTO.getFullName();
+        String email = activationDTO.getEmail();
+        String[] regions = activationDTO.getRegions();
+
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyRole(sender, OPERATOR); // Метод может вызвать только оператор
         User user = userExist(userPublicKey);
@@ -161,11 +211,11 @@ public class Contract implements IContract {
 
     // Метод блокировки пользователя
     @Override
-    public void blockUser(
-            String sender,
-            String password,
-            String userPublicKey
-    ) throws Exception {
+    public void blockUser(BlockDTO blockDTO) throws Exception {
+        String sender = blockDTO.getSender();
+        String password = blockDTO.getPassword();
+        String userPublicKey = blockDTO.getUserPublicKey();
+
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyRole(sender, OPERATOR); // Выполнять метод может только оператор
         userExist(userPublicKey);
@@ -181,34 +231,35 @@ public class Contract implements IContract {
 
     // Метод создания карточки продукта
     @Override
-    public void createProduct(
-            String sender,
-            String password,
-            String title,
-            String description,
-            String[] regions
-    ) throws Exception {
+    public void createProduct(CreationDTO creationDTO) throws Exception {
+        String sender = creationDTO.getSender();
+        String password = creationDTO.getPassword();
+        String title = creationDTO.getTitle();
+        String description = creationDTO.getDescription();
+        String[] regions = creationDTO.getRegions();
+
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyRole(sender, SUPPLIER); // Выполнять метод может только поставщик
         productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
         int productId = productList.size();
-        user.addProductProvided(productId);
         productList.add(new Product(productId, sender, title, description, regions)); // Добавление продукта в систему
         contractState.put(PRODUCTS_LIST, productList);
+        user.addProductProvided(productId);
+        userMapping.put(sender, user);
     }
 
     // Метод подтверждения карточки продукта
     @Override
-    public void confirmProduct(
-            String sender,
-            String password,
-            int productKey,
-            String description,
-            String[] regions,
-            int minOrderCount,
-            int maxOrderCount,
-            String[] distributors
-    ) throws Exception {
+    public void confirmProduct(ConfirmationDTO confirmationDTO) throws Exception {
+        String sender = confirmationDTO.getSender();
+        String password = confirmationDTO.getPassword();
+        int productKey = confirmationDTO.getProductKey();
+        String description = confirmationDTO.getDescription();
+        String[] regions = confirmationDTO.getRegions();
+        int minOrderCount = confirmationDTO.getMinOrderCount();
+        int maxOrderCount = confirmationDTO.getMaxOrderCount();
+        String[] distributors = confirmationDTO.getDistributors();
+
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyRole(sender, OPERATOR); // Выполнять метод может только оператор
         Product product = productExist(productKey); // Проверка на то, что продукт существует в системе
@@ -247,15 +298,15 @@ public class Contract implements IContract {
 
     // Метод создания заказа
     @Override
-    public void makeOrder(
-            String sender,
-            String password,
-            int productKey,
-            String executorKey,
-            int count,
-            long desiredDeliveryLimit,
-            String deliveryAddress
-    ) throws Exception {
+    public void makeOrder(MakeDTO makeDTO) throws Exception {
+        String sender = makeDTO.getSender();
+        String password = makeDTO.getPassword();
+        int productKey = makeDTO.getProductKey();
+        String executorKey = makeDTO.getExecutorKey();
+        int count = makeDTO.getCount();
+        long desiredDeliveryLimit = makeDTO.getDesiredDeliveryLimit();
+        String deliveryAddress = makeDTO.getDeliveryAddress();
+
         User user = userHaveAccess(sender, password);
         User executor = userExist(executorKey);
         Product product = productExist(productKey);
@@ -292,14 +343,14 @@ public class Contract implements IContract {
 
     // Метод уточнения данных заказа
     @Override
-    public void clarifyOrder(
-            String sender,
-            String password,
-            int orderKey,
-            int totalPrice,
-            long deliveryLimit,
-            boolean isPrepaymentAvailable
-    ) throws Exception {
+    public void clarifyOrder(ClarifyDTO clarifyDTO) throws Exception {
+        String sender = clarifyDTO.getSender();
+        String password = clarifyDTO.getPassword();
+        int orderKey = clarifyDTO.getOrderKey();
+        int totalPrice = clarifyDTO.getTotalPrice();
+        long deliveryLimit = clarifyDTO.getDeliveryLimit();
+        boolean isPrepaymentAvailable = clarifyDTO.isPrepaymentAvailable();
+
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
         onlyExecutor(sender, orderKey); // Вызвать метод может только исполнитель, у которого был совершён заказ
@@ -312,12 +363,12 @@ public class Contract implements IContract {
 
     // Метод для подтверждения или отказа от заказа
     @Override
-    public void confirmOrCancelOrder(
-            String sender,
-            String password,
-            int orderKey,
-            boolean isConfirm
-    ) throws Exception {
+    public void confirmOrCancelOrder(ConfirmOrCancelDTO confirmOrCancelDTO) throws Exception {
+        String sender = confirmOrCancelDTO.getSender();
+        String password = confirmOrCancelDTO.getPassword();
+        int orderKey = confirmOrCancelDTO.getOrderKey();
+        boolean isConfirm = confirmOrCancelDTO.isConfirm();
+
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
         onlyClient(sender, orderKey); // Вызвать метод может только клиент, который привязан к заказу
@@ -332,11 +383,11 @@ public class Contract implements IContract {
 
     // Метод оплаты заказа (до или после выполнения)
     @Override
-    public void payOrder(
-            String sender,
-            String password,
-            int orderKey
-    ) throws Exception {
+    public void payOrder(PayDTO payDTO) throws Exception {
+        String sender = payDTO.getSender();
+        String password = payDTO.getPassword();
+        int orderKey = payDTO.getOrderKey();
+
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
         onlyClient(sender, orderKey); // Вызвать метод может только клиент, который привязан к заказу
@@ -348,11 +399,11 @@ public class Contract implements IContract {
 
     // Метод выполнения заказа
     @Override
-    public void completeOrder(
-            String sender,
-            String password,
-            int orderKey
-    ) throws Exception {
+    public void completeOrder(CompletionDTO completionDTO) throws Exception {
+        String sender = completionDTO.getSender();
+        String password = completionDTO.getPassword();
+        int orderKey = completionDTO.getOrderKey();
+
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
         onlyExecutor(sender, orderKey); // Вызвать метод может только исполнитель, у которого был совершён заказ
@@ -368,11 +419,11 @@ public class Contract implements IContract {
 
     // Метод получения заказа
     @Override
-    public void takeOrder(
-            String sender,
-            String password,
-            int orderKey
-    ) throws Exception {
+    public void takeOrder(TakeDTO takeDTO) throws Exception {
+        String sender = takeDTO.getSender();
+        String password = takeDTO.getPassword();
+        int orderKey = takeDTO.getOrderKey();
+
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
         onlyClient(sender, orderKey); // Вызвать метод может только клиент, который привязан к заказу
@@ -516,5 +567,50 @@ public class Contract implements IContract {
         if (!Arrays.asList(productList.get(productKey).getDistributors()).contains(distributorKey)) {
             throw CANNOT_SELL_PRODUCT;
         }
+    }
+
+    private void addUser(
+            String login,
+            String password,
+            String title,
+            String description,
+            String fullName,
+            String email,
+            String[] regions,
+            String role
+    ) {
+        Organization organization = new Organization(
+                login,
+                title,
+                description,
+                role
+        );
+        organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<>() {});
+        organizationList.add(organization);
+        contractState.put(ORGANIZATIONS_LIST, organizationList);
+
+        User newUser = new User(login, hashPassword(login, password), fullName, email, regions, organizationList.size() - 1, role);
+        newUser.activate(fullName, email, regions);
+        userMapping.put(login, newUser);
+    }
+
+    private void addProduct(
+            String sender,
+            String title,
+            String description,
+            String[] regions,
+            int minOrderCount,
+            int maxOrderCount,
+            String[] distributors
+    ) {
+        User user = userMapping.get(sender);
+        productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
+        int productId = productList.size();
+        Product newProduct = new Product(productId, sender, title, description, regions);
+        newProduct.confirm(description, regions, minOrderCount, maxOrderCount, distributors);
+        productList.add(newProduct);
+        contractState.put(PRODUCTS_LIST, productList);
+        user.addProductProvided(productId);
+        userMapping.put(sender, user);
     }
 }

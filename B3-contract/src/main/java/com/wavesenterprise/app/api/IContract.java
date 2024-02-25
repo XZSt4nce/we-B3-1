@@ -1,112 +1,48 @@
 package com.wavesenterprise.app.api;
 
+import com.wavesenterprise.app.dto.order.*;
+import com.wavesenterprise.app.dto.product.*;
+import com.wavesenterprise.app.dto.user.*;
 import com.wavesenterprise.sdk.contract.api.annotation.ContractAction;
 import com.wavesenterprise.sdk.contract.api.annotation.ContractInit;
 import com.wavesenterprise.sdk.contract.api.annotation.InvokeParam;
 
 public interface IContract {
     @ContractInit
-    void init();
+    void init() throws Exception;
 
     @ContractAction
-    void signUp(
-            @InvokeParam (name = "login") String login,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "title") String title,
-            @InvokeParam (name = "description") String description,
-            @InvokeParam (name = "fullName") String fullName,
-            @InvokeParam (name = "email") String email,
-            @InvokeParam (name = "regions") String[] regions,
-            @InvokeParam (name = "organizationKey") Integer organizationKey
-    ) throws Exception;
+    void signUp(@InvokeParam (name = "registrationDTO") RegistrationDto registrationDTO) throws Exception;
 
     @ContractAction
-    void activateUser(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "userPublicKey") String userPublicKey,
-            @InvokeParam (name = "fullName") String fullName,
-            @InvokeParam (name = "email") String email,
-            @InvokeParam (name = "regions") String[] regions
-    ) throws Exception;
+    void activateUser(@InvokeParam (name = "activationDTO") ActivationDTO activationDTO) throws Exception;
 
     @ContractAction
-    void blockUser(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "userPublicKey") String userPublicKey
-    ) throws Exception;
+    void blockUser(@InvokeParam (name = "blockDTO") BlockDTO blockDTO) throws Exception;
 
     @ContractAction
-    void createProduct(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "title") String title,
-            @InvokeParam (name = "description") String description,
-            @InvokeParam (name = "regions") String[] regions
-    ) throws Exception;
+    void createProduct(@InvokeParam (name = "creationDTO") CreationDTO creationDTO) throws Exception;
 
     @ContractAction
-    void confirmProduct(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "productKey") int productKey,
-            @InvokeParam (name = "description") String description,
-            @InvokeParam (name = "regions") String[] regions,
-            @InvokeParam (name = "minOrderCount") int minOrderCount,
-            @InvokeParam (name = "maxOrderCount") int maxOrderCount,
-            @InvokeParam (name = "distributors") String[] distributors
-    ) throws Exception;
+    void confirmProduct(@InvokeParam (name = "confirmationDTO") ConfirmationDTO confirmationDTO) throws Exception;
 
     @ContractAction
-    void makeOrder(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "productKey") int productKey,
-            @InvokeParam (name = "organization") String organization,
-            @InvokeParam (name = "count") int count,
-            @InvokeParam (name = "desiredDeliveryLimit") long desiredDeliveryLimit,
-            @InvokeParam (name = "deliveryAddress") String deliveryAddress
-    ) throws Exception;
+    void makeOrder(@InvokeParam (name = "makeDTO") MakeDTO makeDTO) throws Exception;
 
     @ContractAction
-    void clarifyOrder(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "orderKey") int orderKey,
-            @InvokeParam (name = "totalPrice") int totalPrice,
-            @InvokeParam (name = "deliveryLimit") long deliveryLimit,
-            @InvokeParam (name = "isPrepaymentAvailable") boolean isPrepaymentAvailable
-    ) throws Exception;
+    void clarifyOrder(@InvokeParam (name = "clarifyDTO") ClarifyDTO clarifyDTO) throws Exception;
 
     @ContractAction
-    void confirmOrCancelOrder(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "orderKey") int orderKey,
-            @InvokeParam (name = "isConfirm") boolean isConfirm
-    ) throws Exception;
+    void confirmOrCancelOrder(@InvokeParam (name = "confirmOrCancelDTO") ConfirmOrCancelDTO confirmOrCancelDTO) throws Exception;
 
     @ContractAction
-    void payOrder(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "orderKey") int orderKey
-    ) throws Exception;
+    void payOrder(@InvokeParam (name = "payDTO") PayDTO payDTO) throws Exception;
 
     @ContractAction
-    void completeOrder(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "orderKey") int orderKey
-    ) throws Exception;
+    void completeOrder(@InvokeParam (name = "completionDTO") CompletionDTO completionDTO) throws Exception;
 
     @ContractAction
-    void takeOrder(
-            @InvokeParam (name = "sender") String sender,
-            @InvokeParam (name = "password") String password,
-            @InvokeParam (name = "orderKey") int orderKey
-    ) throws Exception;
+    void takeOrder(@InvokeParam (name = "takeDTO") TakeDTO takeDTO) throws Exception;
 
     class Keys {
         public static final String CREATOR = "CREATOR";

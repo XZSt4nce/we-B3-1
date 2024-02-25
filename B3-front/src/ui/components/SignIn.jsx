@@ -5,7 +5,7 @@ import {Control} from "../kit/FormGroups/Control";
 import {Context} from "../../core/ContextWrapper";
 
 export const SignIn = () => {
-    const {signIn} = useContext(Context);
+    const {signIn, actionExecuting} = useContext(Context);
 
     const handler = (ev) => {
         ev.preventDefault();
@@ -19,7 +19,7 @@ export const SignIn = () => {
             <Form onSubmit={handler}>
                 <Control controlId={"signInLogin"} label={"Логин"} />
                 <Control controlId={"signInPassword"} label={"Пароль"} type={"password"} />
-                <Button type={"submit"}>Войти</Button>
+                <Button disabled={actionExecuting} type={"submit"}>Войти</Button>
             </Form>
         </WhiteBlock>
     );

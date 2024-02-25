@@ -31,9 +31,9 @@ export const Market = () => {
 
     return (
         <WhiteBlock title={"Торговая площадка"}>
-            <Form>
+            <Form className={"border rounded p-2"}>
                 <h2 className={"text-center"}>Фильтр</h2>
-                <Form.Check title={"В наличии"} type={"checkbox"} onChange={(ev) => setInStock(ev.target.checked)} />
+                <Form.Check label={"В наличии"} type={"checkbox"} onChange={(ev) => setInStock(ev.target.checked)} />
                 <Control
                     controlId={"minOrderCount"}
                     label={"Минимальное количество за заказ"}

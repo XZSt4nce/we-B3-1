@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {WhiteBlock} from "./HOCs/WhiteBlock";
 import {Control} from "../kit/FormGroups/Control";
 import {Button, Form} from "react-bootstrap";
@@ -10,14 +10,14 @@ export const SignUp = () => {
     const [isEmployee, setIsEmployee] = useState(false);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [organizationKey, setOrganizationKey] = useState("");
-    const {users, signUp} = useContext(Context);
+    const [organizationKey, setOrganizationKey] = useState(null);
+    const {organizations, signUp, actionExecuting} = useContext(Context);
 
-    const clearData = () => {
+    useEffect(() => {
         setTitle("");
         setDescription("");
-        setOrganizationKey("");
-    };
+        setOrganizationKey(null);
+    }, [isEmployee, role]);
 
     const handler = async (ev) => {
         ev.preventDefault();
@@ -30,8 +30,8 @@ export const SignUp = () => {
             if (organizationKey < 0) {
                 alert(Errors.INCORRECT_DATA);
             } else {
-                if (users[organizationKey]) {
-                    if (users[organizationKey].role === role) {
+                if (organizations[organizationKey]) {
+                    if (organizations[organizationKey].role === role) {
                         signUp(login, password, title, description, fullName, email, regions, organizationKey);
                     } else {
                         alert(Errors.NO_MATCH_ORGANIZATION_ROLE);
@@ -41,12 +41,7 @@ export const SignUp = () => {
                 }
             }
         } else {
-            await signUp(login, password, title, description, fullName, email, regions, -1)
-                .then(data => {
-                    if (data) {
-                        console.log(data);
-                    }
-                });
+            await signUp(login, password, title, description, fullName, email, regions, -1);
         }
     }
 
@@ -62,10 +57,7 @@ export const SignUp = () => {
                     <Form.Select
                         name='role'
                         defaultValue={role}
-                        onChange={e => {
-                            clearData();
-                            setRole(e.target.value);
-                        }}
+                        onChange={e => setRole(e.target.value)}
                     >
                         <option value='CLIENT'>Пользователь</option>
                         <option value='DISTRIBUTOR'>Дистрибутор</option>
@@ -81,16 +73,15 @@ export const SignUp = () => {
                             type={"checkbox"}
                             id={"isEmployee"}
                             label={"Я сотрудник"}
-                            onChange={e => {
-                                clearData();
-                                setIsEmployee(e.target.checked);
-                            }}
+                            onChange={e => setIsEmployee(e.target.checked)}
                         />
                         {isEmployee ? (
                             <Control
                                 controlId={"organization"}
                                 type={"number"}
-                                label={"Публичный ключ организации"}
+                                label={"Ключ организации"}
+                                min={0}
+                                max={organizations.length - 1}
                                 placeholder={"Введите, если Вы сотрудник организации"}
                                 required={false}
                                 onChange={e => setOrganizationKey(e.target.value)}
@@ -105,7 +96,7 @@ export const SignUp = () => {
                         )}
                     </>
                 )}
-                <Button type={"submit"}>Зарегистрироваться</Button>
+                <Button disabled={actionExecuting} type={"submit"}>Зарегистрироваться</Button>
             </Form>
         </WhiteBlock>
     );

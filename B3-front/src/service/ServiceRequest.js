@@ -1,11 +1,12 @@
 import {Errors} from '../constants/Errors';
+import {contractAddress} from "../constants/ContractAddress";
 
-class Service {
+class ServiceRequest {
     url = "http://localhost:6882";
-    nodeSender = "3Nk8KgR1jRxYyu3TA7WggwiT6fwtfPErzY3";
-    nodePassword = "-sVXcpcoS3mY1aZcA9v80w";
+    nodeBlockchainAddress = "3NeX8hQVnk7jA6x8zuN5Rng23JrcwAxavim";
+    nodeKeypairPassword = "I9ru6UtlmXBRlq6CsrSq5w";
 
-    async get(endpoint) {
+    async #get(endpoint) {
         try {
             const response = await fetch(`${this.url}/${endpoint}`);
             if (!response.ok) {
@@ -13,40 +14,47 @@ class Service {
             }
             return (await response).json();
         } catch (e) {
-            alert(e);
+            console.error(e);
         }
     }
 
-    async post(endpoint, body={}) {
+    async #post(endpoint, body={}) {
         try {
             const response = await fetch(`${this.url}/${endpoint}`, {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
                 },
-                mode: "no-cors",
                 body: JSON.stringify(body)
             });
             if (!response.ok) {
                 alert(Errors.REQUEST_ERROR);
+            } else {
+                return (await response).json();
             }
-            return (await response).json();
         } catch (e) {
             console.error(e);
-            alert(e);
         }
     }
 
-    async getContractKey(contractAddress, key) {
-        return await this.get(`${this.url}}/contracts/${contractAddress}/${key}`);
+    async getContractKey(key) {
+        return await this.#get(`contracts/${contractAddress}/${key}`);
     }
 
-    async signAndBroadcast(params={}, contractAddress) {
-        return await this.post("transactions/signAndBroadcast", {
+    async getContractValues() {
+        return await this.#get(`contracts/${contractAddress}`)
+    }
+
+    async getUnconfirmedTransaction(txID) {
+        return await this.#get(`transactions/unconfirmed/info/${txID}`);
+    }
+
+    async signAndBroadcast(params={}) {
+        return await this.#post("transactions/signAndBroadcast", {
             "contractId": contractAddress,
             "fee": 0,
-            "sender": this.nodeSender,
-            "password": this.nodePassword,
+            "sender": this.nodeBlockchainAddress,
+            "password": this.nodeKeypairPassword,
             "type": 104,
             "params": params,
             "version": 2,
@@ -55,4 +63,4 @@ class Service {
     }
 }
 
-export default new Service();
+export default new ServiceRequest();

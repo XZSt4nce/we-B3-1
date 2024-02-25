@@ -6,8 +6,7 @@ import {UserRole} from "../../constants/UserRole";
 import {ProductsList} from "../components/ProductsList";
 
 export const User = ({userStruct}) => {
-    const {user, activateUser, blockUser, organizations, products} = useContext(Context);
-    console.log(userStruct);
+    const {user, activateUser, blockUser, organizations, products, actionExecuting} = useContext(Context);
 
     const handleActivate = async (ev) => {
         ev.preventDefault();
@@ -46,7 +45,9 @@ export const User = ({userStruct}) => {
                                         amounts={userStruct.products}
                                     />
                                 )}
-                                <Button variant={"danger"} onClick={() => blockUser(userStruct.login)}>Заблокировать</Button>
+                                {!userStruct.blocked && (
+                                    <Button disabled={actionExecuting} variant={"danger"} onClick={() => blockUser(userStruct.login)}>Заблокировать</Button>
+                                )}
                             </>
                         ) : (
                             <Form onSubmit={handleActivate}>
@@ -54,7 +55,7 @@ export const User = ({userStruct}) => {
                                 <Control controlId={"fullName"} label={"Описание"} defaultValue={userStruct.fullName} />
                                 <Control controlId={"email"} label={"Описание"} type={"email"} defaultValue={userStruct.email} />
                                 <Control controlId={"regions"} label={"Описание"} defaultValue={userStruct.regions.join(", ")} />
-                                <Button variant={"success"} type={"submit"}>Активировать</Button>
+                                <Button disabled={actionExecuting} variant={"success"} type={"submit"}>Активировать</Button>
                             </Form>
                         )}
                     </>

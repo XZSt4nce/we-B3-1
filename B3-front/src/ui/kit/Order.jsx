@@ -6,7 +6,7 @@ import {OrderStatus} from "../../constants/OrderStatus";
 import {Control} from "./FormGroups/Control";
 
 export const Order = ({order}) => {
-    const {user, products, clarifyOrder, confirmOrCancelOrder, payOrder, completeOrder, takeOrder} = useContext(Context);
+    const {user, products, clarifyOrder, confirmOrCancelOrder, payOrder, completeOrder, takeOrder, actionExecuting} = useContext(Context);
 
     const handleClarify = async (ev) => {
         ev.preventDefault();
@@ -52,11 +52,11 @@ export const Order = ({order}) => {
                                 </Card.Footer>
                             ) : order.status === "EXECUTING" ? (
                                 <Card.Footer>
-                                    <Button onClick={completeOrder}>Завершить</Button>
+                                    <Button disabled={actionExecuting} onClick={completeOrder}>Завершить</Button>
                                 </Card.Footer>
                             ) : order.status === "EXECUTING_PAID" && (
                                 <Card.Footer>
-                                    <Button onClick={completeOrder}>Завершить</Button>
+                                    <Button disabled={actionExecuting} onClick={completeOrder}>Завершить</Button>
                                 </Card.Footer>
                             )}
                         </>
@@ -65,17 +65,17 @@ export const Order = ({order}) => {
                             {order.status === "WAITING_FOR_CLIENT" ? (
                                 <CardFooter>
                                     <div className={"d-flex justify-content-between"}>
-                                        <Button onClick={() => confirmOrCancelOrder(false)}>Отклонить</Button>
-                                        <Button onClick={() => confirmOrCancelOrder(true)}>Принять</Button>
+                                        <Button disabled={actionExecuting} onClick={() => confirmOrCancelOrder(false)}>Отклонить</Button>
+                                        <Button disabled={actionExecuting} onClick={() => confirmOrCancelOrder(true)}>Принять</Button>
                                     </div>
                                 </CardFooter>
                             ) : order.status === "WAITING_FOR_PAYMENT" ? (
                                 <Card.Footer>
-                                    <Button onClick={payOrder}>Оплатить</Button>
+                                    <Button disabled={actionExecuting} onClick={payOrder}>Оплатить</Button>
                                 </Card.Footer>
                             ) : order.status === "WAITING_FOR_TAKING" && (
                                 <Card.Footer>
-                                    <Button onClick={takeOrder}>Забрать</Button>
+                                    <Button disabled={actionExecuting} onClick={takeOrder}>Забрать</Button>
                                 </Card.Footer>
                             )}
                         </>
