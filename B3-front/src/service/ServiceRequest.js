@@ -1,4 +1,3 @@
-import {Errors} from '../constants/Errors';
 import {contractAddress} from "../constants/ContractAddress";
 
 class ServiceRequest {
@@ -9,12 +8,11 @@ class ServiceRequest {
     async #get(endpoint) {
         try {
             const response = await fetch(`${this.url}/${endpoint}`);
-            if (!response.ok) {
-                alert(Errors.REQUEST_ERROR)
+            if (response.ok) {
+                return (await response).json();
             }
-            return (await response).json();
         } catch (e) {
-            console.error(e);
+            console.error("e");
         }
     }
 
@@ -27,9 +25,7 @@ class ServiceRequest {
                 },
                 body: JSON.stringify(body)
             });
-            if (!response.ok) {
-                alert(Errors.REQUEST_ERROR);
-            } else {
+            if (response.ok) {
                 return (await response).json();
             }
         } catch (e) {

@@ -235,10 +235,8 @@ export const ContextWrapper = ({children}) => {
     async function waitTransaction(txID, callback) {
         setActionExecuting(true);
         const intervalId = setInterval(async () => {
-            console.log(123);
             await ServiceRequest.getUnconfirmedTransaction(txID)
                 .then((data) => {
-                    console.log(data);
                     if (!data) {
                         setActionExecuting(false);
                         callback();
