@@ -4,7 +4,6 @@ import java.util.*;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_FUNDS;
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_PRODUCTS;
-import static com.wavesenterprise.app.api.IContract.Roles.OPERATOR;
 
 public class User {
     private String login;
@@ -42,7 +41,7 @@ public class User {
         this.products = new HashMap<>();
         this.orders = new ArrayList<>();
         this.isBlocked = false;
-        this.isActivated = Objects.equals(role, OPERATOR);
+        this.isActivated = false;
         this.role = role;
         this.organizationKey = organizationKey;
     }

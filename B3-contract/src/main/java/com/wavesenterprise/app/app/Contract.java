@@ -26,17 +26,14 @@ import static com.wavesenterprise.app.api.IContract.OrderStatuses.*;
 public class Contract implements IContract {
     private final ContractState contractState; // Хранит все значения контракта
     private final Mapping<User> userMapping; // Хранит всех пользователей
-    private List<Order> orderList = new ArrayList<>(); // Хранит все заказы
-    private List<Product> productList = new ArrayList<>(); // Хранит все продукты
-    private List<Organization> organizationList = new ArrayList<>(); // Хранит все организации
 
 
     public Contract(ContractState contractState) {
         this.contractState = contractState;
         this.userMapping = contractState.getMapping(User.class, USERS_MAPPING_PREFIX);
-        this.contractState.put(ORDERS_LIST, orderList);
-        this.contractState.put(PRODUCTS_LIST, productList);
-        this.contractState.put(ORGANIZATIONS_LIST, organizationList);
+        this.contractState.put(ORDERS_LIST, new ArrayList<Order>());
+        this.contractState.put(PRODUCTS_LIST, new ArrayList<Product>());
+        this.contractState.put(ORGANIZATIONS_LIST, new ArrayList<Organization>());
     }
 
     /*
@@ -45,30 +42,20 @@ public class Contract implements IContract {
 
     // Метод деплоя контракта
     @Override
-    public void init() throws Exception {
-        String login = "operatorLogin";
-        String password = "123";
-        String organizationTitle = "Profi";
-        String organizationDescription = "Разработка решений с использованием блочейн технологий";
+    public void init() {
+        String login = "operator";
         this.contractState.put(CREATOR, login);
-        Organization organization = new Organization(
+
+        addUser(
                 login,
-                organizationTitle,
-                organizationDescription,
-                DISTRIBUTOR
-        );
-        organizationList.add(organization);
-        contractState.put(ORGANIZATIONS_LIST, organizationList);
-        User operator = new User(
-                login,
-                hashPassword(login, password),
+                "123",
+                "Profi",
+                "Разработка решений с использованием блочейн технологий",
                 "admin",
                 "admin@adm.in",
                 new String[]{"США", "Индия", "Япония"},
-                0,
                 OPERATOR
         );
-        userMapping.put(login, operator);
 
         addUser(
                 "supplier",
@@ -147,7 +134,7 @@ public class Contract implements IContract {
                     description,
                     role
             );
-            organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<>() {});
+            List<Organization> organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
             organizationKey = organizationList.size();
             organizationList.add(organization);
             contractState.put(ORGANIZATIONS_LIST, organizationList);
@@ -199,7 +186,7 @@ public class Contract implements IContract {
             if (isPresent(organizationKey)) {
                 Organization organization = organizationExist(organizationKey);
                 organization.addEmployee(userPublicKey);
-                organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<>() {});
+                List<Organization> organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
                 organizationList.set(organizationKey, organization);
                 contractState.put(ORGANIZATIONS_LIST, organizationList);
             }
@@ -240,7 +227,7 @@ public class Contract implements IContract {
 
         User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyRole(sender, SUPPLIER); // Выполнять метод может только поставщик
-        productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
+        List<Product> productList = contractState.get(PRODUCTS_LIST, new TypeReference<List<Product>>() {});
         int productId = productList.size();
         productList.add(new Product(productId, sender, title, description, regions)); // Добавление продукта в систему
         contractState.put(PRODUCTS_LIST, productList);
@@ -291,7 +278,7 @@ public class Contract implements IContract {
         regions = isPresent(regions) ? regions : product.getRegions();
 
         product.confirm(description, regions, minOrderCount, maxOrderCount, distributors); // Подтверждение продукта
-        productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
+        List<Product> productList = contractState.get(PRODUCTS_LIST, new TypeReference<List<Product>>() {});
         productList.set(productKey, product); // Обновление продукта в системе
         contractState.put(PRODUCTS_LIST, productList);
     }
@@ -335,8 +322,8 @@ public class Contract implements IContract {
         }
 
         // Создание заказа и запись в систему
+        List<Order> orderList = contractState.get(ORDERS_LIST, new TypeReference<List<Order>>() {});
         Order order = new Order(orderList.size(), sender, executorKey, productKey, count, desiredDeliveryLimit, deliveryAddress);
-        orderList = contractState.get(ORDERS_LIST, new TypeReference<>() {});
         orderList.add(order);
         contractState.put(ORDERS_LIST, orderList);
     }
@@ -358,7 +345,9 @@ public class Contract implements IContract {
         // Если организацией (или её сотрудником) была изменена дата доставки, то перезаписать её
         deliveryLimit = deliveryLimit == 0 ? order.getDeliveryDate() : deliveryLimit;
         order.clarify(totalPrice, deliveryLimit, isPrepaymentAvailable); // Уточнение данных
-        orderList.set(orderKey, order); // Обновление заказа в системе
+        List<Order> orderList = contractState.get(ORDERS_LIST, new TypeReference<List<Order>>() {});
+        orderList.set(orderKey, order);
+        contractState.put(ORDERS_LIST, orderList);
     }
 
     // Метод для подтверждения или отказа от заказа
@@ -378,7 +367,9 @@ public class Contract implements IContract {
             throw NOT_ENOUGH_FUNDS;
         }
         order.confirmOrCancel(isConfirm);
+        List<Order> orderList = contractState.get(ORDERS_LIST, new TypeReference<List<Order>>() {});
         orderList.set(orderKey, order); // Обновление заказа в системе
+        contractState.put(ORDERS_LIST, orderList);
     }
 
     // Метод оплаты заказа (до или после выполнения)
@@ -394,7 +385,9 @@ public class Contract implements IContract {
         // Оплата заказа
         transferMoney(sender, order.getExecutorKey(), order.getPrice());
         order.pay();
+        List<Order> orderList = contractState.get(ORDERS_LIST, new TypeReference<List<Order>>() {});
         orderList.set(orderKey, order); // Обновление заказа в системе
+        contractState.put(ORDERS_LIST, orderList);
     }
 
     // Метод выполнения заказа
@@ -414,7 +407,9 @@ public class Contract implements IContract {
             userMapping.put(order.getExecutorKey(), executor);
         }
         order.complete(); // Выполнение заказа
+        List<Order> orderList = contractState.get(ORDERS_LIST, new TypeReference<List<Order>>() {});
         orderList.set(orderKey, order); // Обновление заказа в системе
+        contractState.put(ORDERS_LIST, orderList);
     }
 
     // Метод получения заказа
@@ -434,7 +429,9 @@ public class Contract implements IContract {
             userMapping.put(order.getClientKey(), user);
         }
         order.take(); // Получение заказа
+        List<Order> orderList = contractState.get(ORDERS_LIST, new TypeReference<List<Order>>() {});
         orderList.set(orderKey, order);
+        contractState.put(ORDERS_LIST, orderList);
     }
 
     /*
@@ -452,7 +449,7 @@ public class Contract implements IContract {
 
     private Organization organizationExist(Integer organizationKey) throws Exception {
         try {
-            organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<>() {});
+            List<Organization> organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
             return organizationList.get(organizationKey);
         } catch (Exception e) {
             throw ORGANIZATION_NOT_FOUND;
@@ -488,6 +485,7 @@ public class Contract implements IContract {
 
     private Order orderExist(int orderKey) throws Exception {
         try {
+            List<Order> orderList = contractState.get(ORDERS_LIST, new TypeReference<List<Order>>() {});
             return orderList.get(orderKey);
         } catch (Exception e) {
             throw ORDER_NOT_FOUND;
@@ -519,6 +517,7 @@ public class Contract implements IContract {
 
     private Product productExist(int productKey) throws Exception {
         try {
+            List<Product> productList = contractState.get(PRODUCTS_LIST, new TypeReference<List<Product>>() {});
             return productList.get(productKey);
         } catch (Exception e) {
             throw PRODUCT_NOT_FOUND;
@@ -564,6 +563,7 @@ public class Contract implements IContract {
     }
 
     private void approvedDistributor(String distributorKey, int productKey) throws Exception {
+        List<Product> productList = contractState.get(PRODUCTS_LIST, new TypeReference<List<Product>>() {});
         if (!Arrays.asList(productList.get(productKey).getDistributors()).contains(distributorKey)) {
             throw CANNOT_SELL_PRODUCT;
         }
@@ -585,7 +585,7 @@ public class Contract implements IContract {
                 description,
                 role
         );
-        organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<>() {});
+        List<Organization> organizationList = contractState.get(ORGANIZATIONS_LIST, new TypeReference<List<Organization>>() {});
         organizationList.add(organization);
         contractState.put(ORGANIZATIONS_LIST, organizationList);
 
@@ -604,7 +604,7 @@ public class Contract implements IContract {
             String[] distributors
     ) {
         User user = userMapping.get(sender);
-        productList = contractState.get(PRODUCTS_LIST, new TypeReference<>() {});
+        List<Product> productList = contractState.get(PRODUCTS_LIST, new TypeReference<List<Product>>() {});
         int productId = productList.size();
         Product newProduct = new Product(productId, sender, title, description, regions);
         newProduct.confirm(description, regions, minOrderCount, maxOrderCount, distributors);

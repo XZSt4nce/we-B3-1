@@ -9,7 +9,7 @@ import com.wavesenterprise.sdk.contract.api.annotation.InvokeParam;
 
 public interface IContract {
     @ContractInit
-    void init() throws Exception;
+    void init();
 
     @ContractAction
     void signUp(@InvokeParam (name = "registrationDTO") RegistrationDto registrationDTO) throws Exception;
