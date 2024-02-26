@@ -19,8 +19,8 @@ import java.util.*;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.*;
 import static com.wavesenterprise.app.api.IContract.Keys.*;
-import static com.wavesenterprise.app.api.IContract.Roles.*;
-import static com.wavesenterprise.app.api.IContract.OrderStatuses.*;
+import static com.wavesenterprise.app.domain.OrderStatus.*;
+import static com.wavesenterprise.app.domain.Role.*;
 
 @ContractHandler
 public class Contract implements IContract {
@@ -114,7 +114,7 @@ public class Contract implements IContract {
         int organizationKey = registrationDTO.getOrganizationKey();
 
         notSignedUp(login); // Проверка, что пользователя с таким логином нет в системе
-        String role = CLIENT;
+        Role role = CLIENT;
 
         if (isPresent(organizationKey)) {
             if (isPresent(title) || isPresent(description)) {
@@ -476,9 +476,9 @@ public class Contract implements IContract {
         }
     }
 
-    private void onlyRole(String userPublicKey, String role) throws Exception {
-        String userRole = userExist(userPublicKey).getRole();
-        if (!Objects.equals(userRole, role) && (!Objects.equals(role, DISTRIBUTOR) || !Objects.equals(userRole, OPERATOR))) {
+    private void onlyRole(String userPublicKey, Role role) throws Exception {
+        Role userRole = userExist(userPublicKey).getRole();
+        if (userRole != role && (role != DISTRIBUTOR || userRole != OPERATOR)) {
             throw NOT_ENOUGH_RIGHTS;
         }
     }
@@ -492,9 +492,9 @@ public class Contract implements IContract {
         }
     }
 
-    private void onlyOrderStatus(int orderKey, String status) throws Exception {
+    private void onlyOrderStatus(int orderKey, OrderStatus status) throws Exception {
         Order order = orderExist(orderKey);
-        if (!Objects.equals(order.getStatus(), status)) {
+        if (order.getStatus() == status) {
             throw NOT_ENOUGH_RIGHTS;
         }
     }
@@ -577,7 +577,7 @@ public class Contract implements IContract {
             String fullName,
             String email,
             String[] regions,
-            String role
+            Role role
     ) {
         Organization organization = new Organization(
                 login,

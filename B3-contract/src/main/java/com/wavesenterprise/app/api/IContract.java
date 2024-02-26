@@ -52,24 +52,6 @@ public interface IContract {
         public static final String ORGANIZATIONS_LIST = "ORGANIZATIONS";
     }
 
-    class Roles {
-        public static final String OPERATOR = "OPERATOR";
-        public static final String DISTRIBUTOR = "DISTRIBUTOR";
-        public static final String SUPPLIER = "SUPPLIER";
-        public static final String CLIENT = "CLIENT";
-    }
-
-    class OrderStatuses {
-        public static final String WAITING_FOR_CLIENT = "WAITING_FOR_CLIENT";
-        public static final String WAITING_FOR_EMPLOYEE = "WAITING_FOR_EMPLOYEE";
-        public static final String WAITING_FOR_PAYMENT = "WAITING_FOR_PAYMENT";
-        public static final String EXECUTING = "EXECUTING";
-        public static final String EXECUTING_PAID = "EXECUTING_PAID";
-        public static final String CANCELLED = "CANCELLED";
-        public static final String WAITING_FOR_TAKING = "WAITING_FOR_TAKING";
-        public static final String TAKEN = "TAKEN";
-    }
-
     class Exceptions {
         public static final Exception USER_NOT_FOUND = new Exception("Пользователь не найден");
         public static final Exception ORGANIZATION_NOT_FOUND = new Exception("Организация не найдена");

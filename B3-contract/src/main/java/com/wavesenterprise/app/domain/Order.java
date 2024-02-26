@@ -8,7 +8,7 @@ import java.util.Objects;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.INCORRECT_DATA;
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_RIGHTS;
-import static com.wavesenterprise.app.api.IContract.OrderStatuses.*;
+import static com.wavesenterprise.app.domain.OrderStatus.*;
 
 public class Order {
     private String hash;
@@ -21,7 +21,7 @@ public class Order {
     private long deliveryDate;
     private String deliveryAddress;
     private Date creationDate;
-    private String status;
+    private OrderStatus status;
     private boolean isPrepaymentAvailable;
 
     public Order() {}
@@ -142,7 +142,7 @@ public class Order {
         return deliveryDate;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
@@ -170,7 +170,7 @@ public class Order {
         this.deliveryDate = deliveryDate;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
     }
 

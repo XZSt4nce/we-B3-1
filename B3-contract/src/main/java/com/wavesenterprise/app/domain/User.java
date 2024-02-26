@@ -15,7 +15,7 @@ public class User {
     private List<Integer> productsProvided;
     private Map<Integer, Integer> products;
     private List<Integer> orders;
-    private String role;
+    private Role role;
     private boolean isActivated;
     private boolean isBlocked;
     private int organizationKey;
@@ -29,7 +29,7 @@ public class User {
             String email,
             String[] regions,
             int organizationKey,
-            String role
+            Role role
     ) {
         this.login = login;
         this.password = password;
@@ -92,7 +92,7 @@ public class User {
         this.email = email;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
@@ -194,7 +194,7 @@ public class User {
         this.orders = orders;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 
