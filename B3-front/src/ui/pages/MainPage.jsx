@@ -21,7 +21,6 @@ const MainPage = () => {
     return !!user.login && (
         <>
             <Profile />
-            <OrdersList orders={orders}/>
             {user.role !== "SUPPLIER" && <Market />}
             {user.role === "OPERATOR" && (
                 <>
@@ -29,6 +28,7 @@ const MainPage = () => {
                         title={"Заявки на создание продуктов"}
                         products={products.filter(product => !product.confirmed)} />
                     <UserList />
+                    <OrdersList orders={orders}/>
                 </>
             )}
             {user.role === "SUPPLIER" && (

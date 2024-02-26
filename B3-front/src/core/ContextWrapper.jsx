@@ -19,7 +19,13 @@ export const ContextWrapper = ({children}) => {
             const objectsData = {};
             Object.keys(data)
                 .filter(key => key.startsWith(prefix))
-                .forEach(key => objectsData[key.slice(prefix.length + 1)] = data[key]);
+                .forEach(key => {
+                    if (key.length > prefix.length) {
+                        objectsData[key.slice(prefix.length + 1)] = data[key];
+                    } else {
+                        objectsData[key] = data[key];
+                    }
+                });
             return objectsData;
         }
 
@@ -251,7 +257,7 @@ export const ContextWrapper = ({children}) => {
         await ServiceRequest.getContractKey(`${ContractKeys.USERS_MAPPING_PREFIX}_${userPublicKey}`)
             .then((data) => {
                 if (data) {
-                    setUsers({...users, login: data});
+                    setUsers({...users, [userPublicKey]: JSON.parse(data.value)});
                 }
             });
     }
@@ -260,7 +266,7 @@ export const ContextWrapper = ({children}) => {
         await ServiceRequest.getContractKey(ContractKeys.ORDERS_LIST)
             .then((data) => {
                 if (data) {
-                    setOrders(data);
+                    setOrders(JSON.parse(data.value));
                 }
             });
     }
@@ -269,7 +275,7 @@ export const ContextWrapper = ({children}) => {
         await ServiceRequest.getContractKey(ContractKeys.PRODUCTS_LIST)
             .then((data) => {
                 if (data) {
-                    setProducts(data);
+                    setProducts(JSON.parse(data.value));
                 }
             });
     }

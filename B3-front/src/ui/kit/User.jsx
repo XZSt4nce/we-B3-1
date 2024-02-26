@@ -28,7 +28,7 @@ export const User = ({userStruct}) => {
                                 <Card.Text>Баланс: {userStruct.balance.toLocaleString()}</Card.Text>
                                 <Card.Text>Название организации: {organizations[userStruct.organizationKey].title}</Card.Text>
                                 <Card.Text>Описание организации: {organizations[userStruct.organizationKey].description}</Card.Text>
-                                <Card.Text>Регионы распространения: {userStruct.regions}</Card.Text>
+                                <Card.Text>Регионы распространения: {userStruct.regions.join(", ")}</Card.Text>
                                 <Card.Text>ФИО: {userStruct.fullName}</Card.Text>
                                 <Card.Text>E-mail: {userStruct.email}</Card.Text>
                                 <Card.Text>Роль: {UserRole[userStruct.role]}</Card.Text>
@@ -46,7 +46,7 @@ export const User = ({userStruct}) => {
                                     />
                                 )}
                                 {!userStruct.blocked && (
-                                    <Button disabled={actionExecuting} variant={"danger"} onClick={() => blockUser(userStruct.login)}>Заблокировать</Button>
+                                    <Button className={"w-100"} disabled={actionExecuting} variant={"danger"} onClick={() => blockUser(userStruct.login)}>Заблокировать</Button>
                                 )}
                             </>
                         ) : (
@@ -55,7 +55,7 @@ export const User = ({userStruct}) => {
                                 <Control controlId={"fullName"} label={"Описание"} defaultValue={userStruct.fullName} />
                                 <Control controlId={"email"} label={"Описание"} type={"email"} defaultValue={userStruct.email} />
                                 <Control controlId={"regions"} label={"Описание"} defaultValue={userStruct.regions.join(", ")} />
-                                <Button disabled={actionExecuting} variant={"success"} type={"submit"}>Активировать</Button>
+                                <Button className={"w-100"} disabled={actionExecuting} variant={"success"} type={"submit"}>Активировать</Button>
                             </Form>
                         )}
                     </>

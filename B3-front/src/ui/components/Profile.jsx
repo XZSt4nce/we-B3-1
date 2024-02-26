@@ -7,7 +7,6 @@ import {UserRole} from "../../constants/UserRole";
 
 export const Profile = () => {
     const {user, products, orders} = useContext(Context);
-
     return (
         <WhiteBlock title={"Профиль"}>
             <p>Логин: {user.login}</p>
@@ -25,7 +24,7 @@ export const Profile = () => {
                 />
             )}
             {user.role !== "SUPPLIER" && <ProductsList products={Object.keys(user.products).map(product => products[product])} amounts={user.products} title={"Склад"}/>}
-            <OrdersList orders={user.orders.map(order => orders[order])} />
+            <OrdersList orders={user.orders.map(orderKey => orders[orderKey])} />
         </WhiteBlock>
     );
 };

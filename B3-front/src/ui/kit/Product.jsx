@@ -94,7 +94,7 @@ export const Product = ({product, amount, isOrderProduct=false, inStock=false}) 
             ))}
         </>
     ) : (
-        <Card>
+        <Card className={"p-2"}>
             <Link to={`/user/${product.mader}`}>Производитель: {product.mader}</Link>
             {cardBody}
             {cardFooter(product.mader)}
