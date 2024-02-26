@@ -6,7 +6,6 @@ build/
 !**/*/workspace.xml
 !**/*/tasks.xml
 !**/*/.idea/misc.xml
-credentials.txt
 
 ### IntelliJ IDEA ###
 !**/*/.idea/modules.xml
