@@ -133,6 +133,7 @@ public class Contract implements IContract {
             if (isPresent(description)) {
                 role = OPERATOR;
             } else {
+                description = "";
                 role = DISTRIBUTOR;
             }
             Organization organization = new Organization(
@@ -146,6 +147,8 @@ public class Contract implements IContract {
             contractState.put(ORGANIZATIONS_LIST, organizationList);
         } else if (isPresent(description)) {
             throw INCORRECT_DATA;
+        } else {
+            organizationKey = -1;
         }
 
         // Добавление пользователя в систему
@@ -316,7 +319,7 @@ public class Contract implements IContract {
         } else {
             onlyRole(sender, DISTRIBUTOR);
             onlyRole(executorKey, SUPPLIER);
-            if (executor.getProducts().get(productKey) < count) {
+            if (executor.getProducts().getOrDefault(productKey, 0) < count) {
                 throw NOT_ENOUGH_PRODUCTS;
             }
             if (!Objects.equals(product.getMader(), executorKey)) {
@@ -575,15 +578,17 @@ public class Contract implements IContract {
             String[] regions,
             Role role
     ) {
-        Organization organization = new Organization(
-                login,
-                title,
-                description,
-                role
-        );
         int organizationKey = organizationList.size();
-        organizationList.add(organization);
-        contractState.put(ORGANIZATIONS_LIST, organizationList);
+        if (role != CLIENT) {
+            Organization organization = new Organization(
+                    login,
+                    title,
+                    description,
+                    role
+            );
+            organizationList.add(organization);
+            contractState.put(ORGANIZATIONS_LIST, organizationList);
+        }
 
         User newUser = new User(login, hashPassword(login, password), fullName, email, regions, organizationKey, role);
         newUser.activate(fullName, email, regions);

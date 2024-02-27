@@ -11,8 +11,8 @@ export const CreateProductForm = () => {
         ev.preventDefault();
         const title = ev.target[0].value;
         const description = ev.target[1].value;
-        const regions = ev.target[2].value.split(",").map(region => region.trim());
-        await createProduct(title, description, regions);
+        const regions = ev.target[2].value.split(",").map(region => region.trim().toUpperCase());
+        await createProduct(title, description, JSON.stringify(regions));
     };
 
     return (

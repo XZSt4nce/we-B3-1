@@ -115,30 +115,54 @@ export const ContextWrapper = ({children}) => {
     };
 
     const createProduct = async (title, description, regions) => {
-        await ServiceContract.createProduct(user.login, password, title, description, regions)
-            .then((data) => {
-                if (data) {
-                    waitTransaction(data.id, async () => {
-                        await updateProducts();
-                        await updateUser(user.login);
-                        alert("Заявка на создание продукта отправлена оператору");
-                    });
-                }
-            });
+        let regionsMatch = true;
+        for (const region of regions) {
+            if (!user.regions.includes(region)) {
+                regionsMatch = false;
+                break;
+            }
+        }
+
+        if (regionsMatch) {
+            await ServiceContract.createProduct(user.login, password, title, description, regions)
+                .then((data) => {
+                    if (data) {
+                        waitTransaction(data.id, async () => {
+                            await updateProducts();
+                            await updateUser(user.login);
+                            alert("Заявка на создание продукта отправлена оператору");
+                        });
+                    }
+                });
+        } else {
+            alert(Errors.SUPPLIER_REGIONS_NOT_MATCH);
+        }
     };
 
     const confirmProduct = async (productKey, description, regions, minOrderCount, maxOrderCount, distributors) => {
-        if (productKey >= products.length) {
+        let regionsMatch = true;
+        for (const region of regions) {
+            if (!products[productKey].mader.regions.includes(region)) {
+                regionsMatch = false;
+                break;
+            }
+        }
+
+        if (minOrderCount > maxOrderCount) {
+            alert(Errors.INCORRECT_DATA);
+        } else if (productKey >= products.length) {
             alert(Errors.PRODUCT_NOT_FOUND);
         } else if (productKey < 0) {
             alert(Errors.INCORRECT_DATA);
-        } else {
-            await ServiceContract.confirmProduct(user.login, password, productKey, description, regions, minOrderCount, maxOrderCount, distributors)
+        } else if (regionsMatch) {
+            await ServiceContract.confirmProduct(user.login, password, productKey, description, JSON.stringify(regions), minOrderCount, maxOrderCount, JSON.stringify(distributors))
                 .then((data) => {
                     if (data) {
                         waitTransaction(data.id, updateProducts);
                     }
                 });
+        } else {
+            alert(Errors.SUPPLIER_REGIONS_NOT_MATCH);
         }
     };
 
@@ -257,7 +281,11 @@ export const ContextWrapper = ({children}) => {
         await ServiceRequest.getContractKey(`${ContractKeys.USERS_MAPPING_PREFIX}_${userPublicKey}`)
             .then((data) => {
                 if (data) {
-                    setUsers({...users, [userPublicKey]: JSON.parse(data.value)});
+                    const userData = JSON.parse(data.value);
+                    setUsers({...users, [userPublicKey]: userData});
+                    if (user.login === userPublicKey) {
+                        setUser(userData);
+                    }
                 }
             });
     }

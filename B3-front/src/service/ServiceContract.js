@@ -16,16 +16,16 @@ class ServiceContract {
         ])
     }
 
-    async activateUser(sender, password, userPublicKey, description, fullName, email, regions) {
+    async activateUser(sender, password, userPublicKey, fullName, email, regions) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
-                "value": "signUpClient",
+                "value": "activateUser",
                 "key": "action"
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","userPublicKey": "${userPublicKey}","description": "${description}","fullName": "${fullName}","email": "${email}","regions": ${regions}}`,
+                "value": `{"sender": "${sender}","password": "${password}","userPublicKey": "${userPublicKey}","fullName": "${fullName}","email": "${email}","regions": ${regions}}`,
                 "key": "activationDTO"
             }
         ])
@@ -47,6 +47,7 @@ class ServiceContract {
     }
 
     async createProduct(sender, password, title, description, regions) {
+        console.log(regions);
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",

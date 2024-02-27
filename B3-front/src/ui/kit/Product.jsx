@@ -3,7 +3,6 @@ import {Button, Card, Form} from "react-bootstrap";
 import {Context} from "../../core/ContextWrapper";
 import {Control} from "./FormGroups/Control";
 import {Link} from "react-router-dom";
-import {Errors} from "../../constants/Errors";
 
 export const Product = ({product, amount, isOrderProduct=false, inStock=false}) => {
     const {user, users, makeOrder, confirmProduct, actionExecuting} = useContext(Context);
@@ -12,10 +11,11 @@ export const Product = ({product, amount, isOrderProduct=false, inStock=false}) 
         <Card.Body>
             <Card.Title>{product.title}</Card.Title>
             <Card.Text>{product.description}</Card.Text>
-            {(product.minOrderCount ?? 0) !== 0 && <Card.Text>Минимальное количество в заказе: {product.minOrderCount}</Card.Text>}
-            {(product.maxOrderCount ?? 0) !== 0 && <Card.Text>Максимальное количество в заказе: {product.maxOrderCount}</Card.Text>}
+            {product.minOrderCount > 0 && <Card.Text>Минимальное количество в заказе: {product.minOrderCount}</Card.Text>}
+            {product.maxOrderCount > 0 && <Card.Text>Максимальное количество в заказе: {product.maxOrderCount}</Card.Text>}
             <Card.Text>Регионы распространения: {product.regions.join(", ")}</Card.Text>
-            {!!amount && (<Card.Text>Количество: {amount}</Card.Text>)}
+            {!!amount && <Card.Text>Количество: {amount}</Card.Text>}
+            {!product.confirmed && <Card.Text className={"fw-bold"}>Не подтверждён</Card.Text>}
         </Card.Body>
     );
 
@@ -34,11 +34,7 @@ export const Product = ({product, amount, isOrderProduct=false, inStock=false}) 
         const minOrderCount = ev.target[2].value;
         const maxOrderCount = ev.target[3].value;
         const distributors = ev.target[4].value.split(",").map(region => region.trim());
-        if (minOrderCount > maxOrderCount) {
-            alert(Errors.INCORRECT_DATA);
-        } else {
-            await confirmProduct(product.id, description, regions, minOrderCount, maxOrderCount, distributors);
-        }
+        await confirmProduct(product.id, description, regions, minOrderCount, maxOrderCount, distributors);
     };
 
     const cardFooter = (executor) =>

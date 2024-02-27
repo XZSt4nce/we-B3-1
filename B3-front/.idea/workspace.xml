@@ -5,20 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9a18c2c8-82d3-40a7-9306-d9cb0aa3c6ab" name="Changes" comment="redundant">
-      <change beforePath="$PROJECT_DIR$/../B3-contract/build_and_push_to_docker.sh" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/build_and_push_to_docker.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../B3-contract/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/app/Contract.java" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/app/Contract.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/constants/ContractAddress.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/ContractAddress.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/constants/Errors.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/Errors.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/ContextWrapper.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/ContextWrapper.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/components/HOCs/WhiteBlock.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/HOCs/WhiteBlock.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/components/OrdersList.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/OrdersList.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/components/ProductsList.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/ProductsList.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/components/Profile.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/Profile.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/components/UserList.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/UserList.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/service/ServiceContract.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/ServiceContract.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/components/CreateProductForm.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/CreateProductForm.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/components/SignUp.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/SignUp.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/kit/FormGroups/Control.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/FormGroups/Control.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/kit/Product.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/Product.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/kit/User.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/User.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/pages/MainPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/pages/MainPage.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../createLocalRepo.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../createLocalRepo.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../startContract.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../startContract.bat" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,7 +36,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
@@ -84,6 +83,7 @@
       <workItem from="1707809618931" duration="16094000" />
       <workItem from="1708066693525" duration="11175000" />
       <workItem from="1708943444006" duration="5476000" />
+      <workItem from="1709017628867" duration="6106000" />
     </task>
     <task id="LOCAL-00001" summary="node credentials">
       <option name="closed" value="true" />

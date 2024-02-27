@@ -25,23 +25,27 @@ export const SignUp = () => {
         const password = ev.target[1].value;
         const fullName = ev.target[2].value;
         const email = ev.target[3].value;
-        const regions = JSON.stringify(ev.target[5].value.split(",").map(el => el.trim()));
-        if (organizationKey) {
-            if (organizationKey < 0) {
-                alert(Errors.INCORRECT_DATA);
-            } else {
-                if (organizations[organizationKey]) {
-                    if (organizations[organizationKey].role === role) {
-                        signUp(login, password, title, description, fullName, email, regions, organizationKey);
-                    } else {
-                        alert(Errors.NO_MATCH_ORGANIZATION_ROLE);
-                    }
-                } else {
-                    alert(Errors.ORGANIZATION_NOT_FOUND);
-                }
-            }
+        if (role === "CLIENT" && ev.target[5].value.includes(",")) {
+            alert(Errors.INCORRECT_DATA);
         } else {
-            await signUp(login, password, title, description, fullName, email, regions, -1);
+            const regions = JSON.stringify(ev.target[5].value.split(",").map(el => el.trim()));
+            if (organizationKey) {
+                if (organizationKey < 0) {
+                    alert(Errors.INCORRECT_DATA);
+                } else {
+                    if (organizations[organizationKey]) {
+                        if (organizations[organizationKey].role === role) {
+                            signUp(login, password, title, description, fullName, email, regions, organizationKey);
+                        } else {
+                            alert(Errors.NO_MATCH_ORGANIZATION_ROLE);
+                        }
+                    } else {
+                        alert(Errors.ORGANIZATION_NOT_FOUND);
+                    }
+                }
+            } else {
+                await signUp(login, password, title, description, fullName, email, regions, -1);
+            }
         }
     }
 

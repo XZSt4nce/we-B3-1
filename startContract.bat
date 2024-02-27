@@ -4,6 +4,8 @@ SET tag=1.0.0
 SET imageHost=localhost:5000
 SET imageURL=%imageHost%/%contractName%:%tag%
 
+docker build B3-contract -f B3-contract/Dockerfile --platform linux/amd64 -t localhost:5000/b3-contract:1.0.0
+docker push localhost:5000/b3-contract:1.0.0
 FOR /F "tokens=3 delims=: " %%a IN ('wsl cat ~/credentials.txt ^|find "blockchain"') DO SET blockchainAddress=%%a
 FOR /F "tokens=3 delims=: " %%a IN ('wsl cat ~/credentials.txt ^|find "keypair"') DO SET keypairPassword=%%a
 docker pull -q %imageURL% > NUL
