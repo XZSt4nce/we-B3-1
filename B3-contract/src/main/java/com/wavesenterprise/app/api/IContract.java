@@ -36,7 +36,7 @@ public interface IContract {
     void confirmOrCancelOrder(@InvokeParam (name = "confirmOrCancelDTO") ConfirmOrCancelDTO confirmOrCancelDTO) throws Exception;
 
     @ContractAction
-    void payOrder(@InvokeParam (name = "payDTO") PayDTO payDTO) throws Exception;
+    void payOrder(@InvokeParam (name = "payDTO") PaymentDTO paymentDTO) throws Exception;
 
     @ContractAction
     void completeOrder(@InvokeParam (name = "completionDTO") CompletionDTO completionDTO) throws Exception;

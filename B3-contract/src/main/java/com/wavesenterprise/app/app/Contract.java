@@ -14,8 +14,9 @@ import com.wavesenterprise.sdk.contract.api.state.ContractState;
 import com.wavesenterprise.sdk.contract.api.state.TypeReference;
 import com.wavesenterprise.sdk.contract.api.state.mapping.Mapping;
 
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.*;
@@ -35,9 +36,9 @@ public class Contract implements IContract {
     public Contract(ContractState contractState) {
         this.contractState = contractState;
         this.userMapping = contractState.getMapping(User.class, USERS_MAPPING_PREFIX);
-        this.orderList = getValue(ORDERS_LIST, new ArrayList<>());
-        this.productList = getValue(PRODUCTS_LIST, new ArrayList<>());
-        this.organizationList = getValue(ORGANIZATIONS_LIST, new ArrayList<>());
+        this.orderList = getValue(ORDERS_LIST, new ArrayList<>(), new TypeReference<>() {});
+        this.productList = getValue(PRODUCTS_LIST, new ArrayList<>(), new TypeReference<>() {});
+        this.organizationList = getValue(ORGANIZATIONS_LIST, new ArrayList<>(), new TypeReference<>() {});
     }
 
     /*
@@ -79,7 +80,7 @@ public class Contract implements IContract {
                 "distributor",
                 "123",
                 "SuperDistributor",
-                null,
+                "",
                 "Дистрибутор Дистрибуторов Дистрибуторович",
                 "distributor@mail.ru",
                 new String[]{"USA", "Japan", "usa"},
@@ -89,8 +90,8 @@ public class Contract implements IContract {
         addUser(
                 "client",
                 "123",
-                null,
-                null,
+                "",
+                "",
                 "Клиент Клиентов Клиентович",
                 "client@mail.ru",
                 new String[]{"RUSSIA"},
@@ -103,7 +104,7 @@ public class Contract implements IContract {
                 "Свежий, жёлтый, большой",
                 new String[]{"USA"},
                 1,
-                0,
+                100,
                 new String[]{"distributor"}
         );
     }
@@ -122,12 +123,16 @@ public class Contract implements IContract {
 
         notSignedUp(login); // Проверка, что пользователя с таким логином нет в системе
         Role role = CLIENT;
+        Organization organization;
 
         if (isPresent(organizationKey)) {
             if (isPresent(title) || isPresent(description)) {
                 throw INCORRECT_DATA;
             }
-            Organization organization = organizationExist(organizationKey);
+            organization = organizationExist(organizationKey);
+            organization.addEmployee(login);
+            organizationList.set(organizationKey, organization);
+            contractState.put(ORGANIZATIONS_LIST, organizationList);
             role = organization.getRole();
         } else if (isPresent(title)) {
             if (isPresent(description)) {
@@ -136,7 +141,7 @@ public class Contract implements IContract {
                 description = "";
                 role = DISTRIBUTOR;
             }
-            Organization organization = new Organization(
+            organization = new Organization(
                     login,
                     title,
                     description,
@@ -180,13 +185,6 @@ public class Contract implements IContract {
         // Если пользователь уже активирован, то отменить выполнение метода
         if (user.isActivated()) {
             throw USER_ALREADY_ACTIVATED;
-        }
-
-        {
-            // Если оператор редактировал некоторые поля учётной записи, то перезаписать их
-            fullName = isPresent(fullName) ? fullName : user.getFullName();
-            email = isPresent(email) ? email : user.getEmail();
-            regions = isPresent(regions) ? regions : user.getRegions();
         }
 
         {
@@ -249,7 +247,6 @@ public class Contract implements IContract {
         String password = confirmationDTO.getPassword();
         int productKey = confirmationDTO.getProductKey();
         String description = confirmationDTO.getDescription();
-        String[] regions = confirmationDTO.getRegions();
         int minOrderCount = confirmationDTO.getMinOrderCount();
         int maxOrderCount = confirmationDTO.getMaxOrderCount();
         String[] distributors = confirmationDTO.getDistributors();
@@ -258,33 +255,23 @@ public class Contract implements IContract {
         onlyRole(sender, OPERATOR); // Выполнять метод может только оператор
         Product product = productExist(productKey); // Проверка на то, что продукт существует в системе
 
-        // Если список дистрибуторов пустой, то отказать в выполнении метода
         if (distributors.length == 0) {
+            throw INCORRECT_DATA;
+        } else if (minOrderCount < 1) {
+            throw INCORRECT_DATA;
+        } else if (minOrderCount > maxOrderCount) {
             throw INCORRECT_DATA;
         }
 
         // Проверка на то, существуют ли дистрибуторы и могут ли они реализовать продукт в регионах, в которых он производится
         for (String distributor : distributors) {
             User userDistributor = userExist(distributor);
-            haveRegion(distributor, regions);
+            haveRegion(distributor, product.getRegions());
             userDistributor.addProductProvided(productKey);
             userMapping.put(distributor, userDistributor);
         }
 
-        if (minOrderCount < 1) {
-            throw INCORRECT_DATA;
-        }
-
-        // Если количество товара за один заказ минимальное больше максимального, то отказать в выполнении метода
-        if (minOrderCount > maxOrderCount) {
-            throw INCORRECT_DATA;
-        }
-
-        // Если оператор редактировал некоторые параметры продукта, то перезаписать их
-        description = isPresent(description) ? description : product.getDescription();
-        regions = isPresent(regions) ? regions : product.getRegions();
-
-        product.confirm(description, regions, minOrderCount, maxOrderCount, distributors); // Подтверждение продукта
+        product.confirm(description, minOrderCount, maxOrderCount, distributors); // Подтверждение продукта
         productList.set(productKey, product); // Обновление продукта в системе
         contractState.put(PRODUCTS_LIST, productList);
     }
@@ -297,7 +284,7 @@ public class Contract implements IContract {
         int productKey = makeDTO.getProductKey();
         String executorKey = makeDTO.getExecutorKey();
         int count = makeDTO.getCount();
-        long desiredDeliveryLimit = makeDTO.getDesiredDeliveryLimit();
+        String desiredDeliveryLimit = makeDTO.getDesiredDeliveryLimit();
         String deliveryAddress = makeDTO.getDeliveryAddress();
 
         User user = userHaveAccess(sender, password);
@@ -307,10 +294,12 @@ public class Contract implements IContract {
 
         if (count == 0) {
             throw INCORRECT_DATA;
-        } else if (product.getMinOrderCount() != 0 && count < product.getMinOrderCount()) {
+        } else if (count < product.getMinOrderCount()) {
             throw TOO_FEW_PRODUCTS;
-        } else if (product.getMaxOrderCount() != 0 && count > product.getMaxOrderCount()) {
+        } else if (count > product.getMaxOrderCount()) {
             throw TOO_MANY_PRODUCTS;
+        } else if (desiredDeliveryLimit.compareTo(LocalDate.now().format(DateTimeFormatter.ISO_DATE)) < 0) {
+            throw INCORRECT_DATA;
         }
 
         if (user.getRole() == CLIENT) {
@@ -319,7 +308,7 @@ public class Contract implements IContract {
         } else {
             onlyRole(sender, DISTRIBUTOR);
             onlyRole(executorKey, SUPPLIER);
-            if (executor.getProducts().getOrDefault(productKey, 0) < count) {
+            if (executor.getProducts().getOrDefault(productKey, 0) < count && executor.getRole() != SUPPLIER) {
                 throw NOT_ENOUGH_PRODUCTS;
             }
             if (!Objects.equals(product.getMader(), executorKey)) {
@@ -328,7 +317,13 @@ public class Contract implements IContract {
         }
 
         // Создание заказа и запись в систему
-        Order order = new Order(orderList.size(), sender, executorKey, productKey, count, desiredDeliveryLimit, deliveryAddress);
+        int orderKey = orderList.size();
+        user.addOrder(orderKey);
+        executor.addOrder(orderKey);
+        userMapping.put(sender, user);
+        userMapping.put(executorKey, executor);
+
+        Order order = new Order(orderKey, sender, executorKey, productKey, count, desiredDeliveryLimit, deliveryAddress);
         orderList.add(order);
         contractState.put(ORDERS_LIST, orderList);
     }
@@ -340,15 +335,19 @@ public class Contract implements IContract {
         String password = clarifyDTO.getPassword();
         int orderKey = clarifyDTO.getOrderKey();
         int totalPrice = clarifyDTO.getTotalPrice();
-        long deliveryLimit = clarifyDTO.getDeliveryLimit();
+        String deliveryLimit = clarifyDTO.getDeliveryLimit();
         boolean isPrepaymentAvailable = clarifyDTO.isPrepaymentAvailable();
+
+        if (deliveryLimit.compareTo(LocalDate.now().format(DateTimeFormatter.ISO_DATE)) < 0) {
+            throw INCORRECT_DATA;
+        } else if (totalPrice < 1) {
+            throw INCORRECT_DATA;
+        }
 
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
         onlyExecutor(sender, orderKey); // Вызвать метод может только исполнитель, у которого был совершён заказ
         onlyOrderStatus(orderKey, WAITING_FOR_EMPLOYEE); // Чтобы уточнить данные, заказ должен быть только создан
-        // Если организацией (или её сотрудником) была изменена дата доставки, то перезаписать её
-        deliveryLimit = deliveryLimit == 0 ? order.getDeliveryDate() : deliveryLimit;
         order.clarify(totalPrice, deliveryLimit, isPrepaymentAvailable); // Уточнение данных
         orderList.set(orderKey, order);
         contractState.put(ORDERS_LIST, orderList);
@@ -378,10 +377,10 @@ public class Contract implements IContract {
 
     // Метод оплаты заказа (до или после выполнения)
     @Override
-    public void payOrder(PayDTO payDTO) throws Exception {
-        String sender = payDTO.getSender();
-        String password = payDTO.getPassword();
-        int orderKey = payDTO.getOrderKey();
+    public void payOrder(PaymentDTO paymentDTO) throws Exception {
+        String sender = paymentDTO.getSender();
+        String password = paymentDTO.getPassword();
+        int orderKey = paymentDTO.getOrderKey();
 
         userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
@@ -401,11 +400,10 @@ public class Contract implements IContract {
         String password = completionDTO.getPassword();
         int orderKey = completionDTO.getOrderKey();
 
-        userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         Order order = orderExist(orderKey);
+        User user = userHaveAccess(sender, password); // Имеет ли пользователь доступ к системе
         onlyExecutor(sender, orderKey); // Вызвать метод может только исполнитель, у которого был совершён заказ
-        {
-            // Удаление продукта(-ов) у исполнителя
+        if (user.getRole() != SUPPLIER) {
             User executor = userMapping.get(order.getExecutorKey());
             executor.decProduct(order.getProductKey(), order.getAmount());
             userMapping.put(order.getExecutorKey(), executor);
@@ -427,11 +425,10 @@ public class Contract implements IContract {
         Order order = orderExist(orderKey);
         onlyClient(sender, orderKey); // Вызвать метод может только клиент, который привязан к заказу
         onlyOrderStatus(orderKey, WAITING_FOR_TAKING); // Чтобы забрать продукта, заказ должен быть готов
-        {
-            // Добавление продукта(-ов) клиенту
-            user.incProduct(order.getProductKey(), order.getAmount());
-            userMapping.put(order.getClientKey(), user);
-        }
+
+        user.incProduct(order.getProductKey(), order.getAmount());
+        userMapping.put(order.getClientKey(), user);
+
         order.take(); // Получение заказа
         orderList.set(orderKey, order);
         contractState.put(ORDERS_LIST, orderList);
@@ -441,20 +438,36 @@ public class Contract implements IContract {
         PRIVATE METHODS
      */
 
+    private Organization organizationExist(int organizationKey) throws Exception {
+        if (organizationKey < organizationList.size()) {
+            return organizationList.get(organizationKey);
+        } else {
+            throw ORGANIZATION_NOT_FOUND;
+        }
+    }
+
+    private Order orderExist(int orderKey) throws Exception {
+        if (orderKey < orderList.size()) {
+            return orderList.get(orderKey);
+        } else {
+            throw ORDER_NOT_FOUND;
+        }
+    }
+
+    private Product productExist(int productKey) throws Exception {
+        if (productKey < productList.size()) {
+            return productList.get(productKey);
+        } else {
+            throw PRODUCT_NOT_FOUND;
+        }
+    }
+
     private User userExist(String userPublicKey) throws Exception {
         Optional<User> user = userMapping.tryGet(userPublicKey);
         if (user.isPresent()) {
             return user.get();
         } else {
             throw USER_NOT_FOUND;
-        }
-    }
-
-    private Organization organizationExist(int organizationKey) throws Exception {
-        if (organizationKey < organizationList.size()) {
-            return organizationList.get(organizationKey);
-        } else {
-            throw ORGANIZATION_NOT_FOUND;
         }
     }
 
@@ -485,17 +498,9 @@ public class Contract implements IContract {
         }
     }
 
-    private Order orderExist(int orderKey) throws Exception {
-        if (orderKey < orderList.size()) {
-            return orderList.get(orderKey);
-        } else {
-            throw ORDER_NOT_FOUND;
-        }
-    }
-
     private void onlyOrderStatus(int orderKey, OrderStatus status) throws Exception {
         Order order = orderExist(orderKey);
-        if (order.getStatus() == status) {
+        if (order.getStatus() != status) {
             throw NOT_ENOUGH_RIGHTS;
         }
     }
@@ -516,24 +521,12 @@ public class Contract implements IContract {
         }
     }
 
-    private Product productExist(int productKey) throws Exception {
-        if (productKey < productList.size()) {
-            return productList.get(productKey);
-        } else {
-            throw PRODUCT_NOT_FOUND;
-        }
-    }
-
     private boolean isPresent(Integer i) {
         return (i != null && i >= 0);
     }
 
     private boolean isPresent(String s) {
         return (s != null && !s.isEmpty());
-    }
-
-    private boolean isPresent(String[] sArr) {
-        return (sArr != null && sArr.length != 0);
     }
 
     private void transferMoney(String from, String to, int amount) throws Exception {
@@ -607,17 +600,17 @@ public class Contract implements IContract {
         User user = userMapping.get(sender);
         int productId = productList.size();
         Product newProduct = new Product(productId, sender, title, description, regions);
-        newProduct.confirm(description, regions, minOrderCount, maxOrderCount, distributors);
+        newProduct.confirm(description, minOrderCount, maxOrderCount, distributors);
         productList.add(newProduct);
         contractState.put(PRODUCTS_LIST, productList);
         user.addProductProvided(productId);
         userMapping.put(sender, user);
     }
 
-    private <T> T getValue(String key, T defaultValue) {
+    private <T> T getValue(String key, T defaultValue, TypeReference<T> typeReference) {
         T value = defaultValue;
         try {
-            value = this.contractState.get(key, new TypeReference<>() {});
+            value = this.contractState.get(key, typeReference);
         } catch (Exception ignored) {}
         return value;
     }

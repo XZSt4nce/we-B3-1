@@ -6,12 +6,12 @@ public class MakeDTO {
     int productKey;
     String executorKey;
     int count;
-    long desiredDeliveryLimit;
+    String desiredDeliveryLimit;
     String deliveryAddress;
 
     public MakeDTO() {}
 
-    public MakeDTO(String sender, String password, int productKey, String executorKey, int count, long desiredDeliveryLimit, String deliveryAddress) {
+    public MakeDTO(String sender, String password, int productKey, String executorKey, int count, String desiredDeliveryLimit, String deliveryAddress) {
         this.sender = sender;
         this.password = password;
         this.productKey = productKey;
@@ -61,11 +61,11 @@ public class MakeDTO {
         this.count = count;
     }
 
-    public long getDesiredDeliveryLimit() {
+    public String getDesiredDeliveryLimit() {
         return desiredDeliveryLimit;
     }
 
-    public void setDesiredDeliveryLimit(long desiredDeliveryLimit) {
+    public void setDesiredDeliveryLimit(String desiredDeliveryLimit) {
         this.desiredDeliveryLimit = desiredDeliveryLimit;
     }
 

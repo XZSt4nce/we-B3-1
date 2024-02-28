@@ -21,3 +21,7 @@ code {
 form button {
   width: 100%;
 }
+
+.card-footer button {
+  width: 100%;
+}

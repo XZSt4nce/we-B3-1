@@ -1,7 +1,7 @@
 import ServiceRequest from "./ServiceRequest";
 
 class ServiceContract {
-    async signUp(login, password, title, description, fullName, email, regions, organizationKey) {
+    async signUp(registrationDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -10,13 +10,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"login": "${login}", "password": "${password}", "title": "${title}", "description": "${description}", "fullName": "${fullName}", "email": "${email}", "regions": ${regions}, "organizationKey": ${organizationKey}}`,
+                "value": JSON.stringify(registrationDTO),
                 "key": "registrationDTO"
             }
         ])
     }
 
-    async activateUser(sender, password, userPublicKey, fullName, email, regions) {
+    async activateUser(activationDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -25,13 +25,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","userPublicKey": "${userPublicKey}","fullName": "${fullName}","email": "${email}","regions": ${regions}}`,
+                "value": JSON.stringify(activationDTO),
                 "key": "activationDTO"
             }
         ])
     }
 
-    async blockUser(sender, password, userPublicKey) {
+    async blockUser(blockDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -40,14 +40,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","userPublicKey": "${userPublicKey}"}`,
+                "value": JSON.stringify(blockDTO),
                 "key": "blockDTO"
             }
         ])
     }
 
-    async createProduct(sender, password, title, description, regions) {
-        console.log(regions);
+    async createProduct(creationDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -56,13 +55,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","title": "${title}","description": "${description}","regions": ${regions}}`,
+                "value": JSON.stringify(creationDTO),
                 "key": "creationDTO"
             }
         ])
     }
 
-    async confirmProduct(sender, password, productKey, description, regions, minOrderCount, maxOrderCount, distributors) {
+    async confirmProduct(confirmationDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -71,13 +70,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","productKey": ${productKey},"description": "${description}","regions": ${regions},"minOrderCount": ${minOrderCount},"maxOrderCount": ${maxOrderCount},"distributors": ${distributors}}`,
+                "value": JSON.stringify(confirmationDTO),
                 "key": "confirmationDTO"
             }
         ])
     }
 
-    async makeOrder(sender, password, productKey, executorKey, count, desiredDeliveryLimit, deliveryAddress) {
+    async makeOrder(makeDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -86,13 +85,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","productKey": ${productKey},"executorKey": "${executorKey}","count": ${count},"desiredDeliveryLimit": ${desiredDeliveryLimit},"deliveryAddress": "${deliveryAddress}"}`,
+                "value": JSON.stringify(makeDTO),
                 "key": "makeDTO"
             }
         ])
     }
 
-    async clarifyOrder(sender, password, orderKey, totalPrice, deliveryLimit, isPrepaymentAvailable) {
+    async clarifyOrder(clarifyDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -101,13 +100,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","orderKey": ${orderKey},"totalPrice": ${totalPrice},"deliveryLimit": ${deliveryLimit},"isPrepaymentAvailable": ${isPrepaymentAvailable}}`,
+                "value": JSON.stringify(clarifyDTO),
                 "key": "clarifyDTO"
             }
         ])
     }
 
-    async confirmOrCancelOrder(sender, password, orderKey, isConfirm) {
+    async confirmOrCancelOrder(confirmOrCancelDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -116,13 +115,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","orderKey": ${orderKey},"isConfirm": ${isConfirm}}`,
+                "value": JSON.stringify(confirmOrCancelDTO),
                 "key": "confirmOrCancelDTO"
             }
         ])
     }
 
-    async payOrder(sender, password, orderKey) {
+    async payOrder(paymentDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -131,13 +130,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","orderKey": ${orderKey}}`,
-                "key": "payDTO"
+                "value": JSON.stringify(paymentDTO),
+                "key": "paymentDTO"
             }
         ])
     }
 
-    async completeOrder(sender, password, orderKey) {
+    async completeOrder(completionDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -146,13 +145,13 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","orderKey": ${orderKey}}`,
+                "value": JSON.stringify(completionDTO),
                 "key": "completionDTO"
             }
         ])
     }
 
-    async takeOrder(sender, password, orderKey) {
+    async takeOrder(takeDTO) {
         return await ServiceRequest.signAndBroadcast([
             {
                 "type": "string",
@@ -161,7 +160,7 @@ class ServiceContract {
             },
             {
                 "type": "string",
-                "value": `{"sender": "${sender}","password": "${password}","orderKey": ${orderKey}}`,
+                "value": JSON.stringify(takeDTO),
                 "key": "takeDTO"
             }
         ])

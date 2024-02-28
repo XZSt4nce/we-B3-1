@@ -4,6 +4,7 @@ import {Context} from "../../core/ContextWrapper";
 import {Control} from "./FormGroups/Control";
 import {UserRole} from "../../constants/UserRole";
 import {ProductsList} from "../components/ProductsList";
+import {Errors} from "../../constants/Errors";
 
 export const User = ({userStruct}) => {
     const {user, activateUser, blockUser, organizations, products, actionExecuting} = useContext(Context);
@@ -12,8 +13,12 @@ export const User = ({userStruct}) => {
         ev.preventDefault();
         const fullName = ev.target[0].value;
         const email = ev.target[1].value;
-        const regions = JSON.stringify(ev.target[2].value.split(",").map(region => region.trim()));
-        await activateUser(userStruct.login, fullName, email, regions);
+        const regions = ev.target[2].value.split(",").map(region => region.trim()).filter(region => region !== "");
+        if (regions.length === 0) {
+            alert(Errors.INCORRECT_DATA);
+        } else {
+            await activateUser(userStruct.login, fullName, email, regions);
+        }
     };
 
     return userStruct.activated ? (

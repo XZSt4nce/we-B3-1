@@ -8,6 +8,7 @@ export const Control = (
         max,
         onChange,
         min,
+        value,
         defaultValue,
         type = "text",
         step = 1,
@@ -17,8 +18,8 @@ export const Control = (
 ) => {
     return (
         <Form.Group controlId={controlId} className={"mb-3"}>
-            <Form.Label>{label}{required && "*"}</Form.Label>
-            <Form.Control defaultValue={defaultValue} type={type} min={min ?? 0} max={max} step={step} required={required} placeholder={placeholder} onChange={onChange} />
+            <Form.Label>{label}</Form.Label>
+            <Form.Control value={value} defaultValue={defaultValue} type={type} min={min ?? 0} max={max} step={step} required={required} placeholder={placeholder} onChange={onChange} />
         </Form.Group>
     );
 };

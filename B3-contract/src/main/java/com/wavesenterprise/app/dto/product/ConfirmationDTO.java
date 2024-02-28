@@ -5,19 +5,17 @@ public class ConfirmationDTO {
     String password;
     int productKey;
     String description;
-    String[] regions;
     int minOrderCount;
     int maxOrderCount;
     String[] distributors;
 
     public ConfirmationDTO() {}
 
-    public ConfirmationDTO(String sender, String password, int productKey, String description, String[] regions, int minOrderCount, int maxOrderCount, String[] distributors) {
+    public ConfirmationDTO(String sender, String password, int productKey, String description, int minOrderCount, int maxOrderCount, String[] distributors) {
         this.sender = sender;
         this.password = password;
         this.productKey = productKey;
         this.description = description;
-        this.regions = regions;
         this.minOrderCount = minOrderCount;
         this.maxOrderCount = maxOrderCount;
         this.distributors = distributors;
@@ -53,14 +51,6 @@ public class ConfirmationDTO {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String[] getRegions() {
-        return regions;
-    }
-
-    public void setRegions(String[] regions) {
-        this.regions = regions;
     }
 
     public int getMinOrderCount() {

@@ -5,12 +5,12 @@ public class ClarifyDTO {
     String password;
     int orderKey;
     int totalPrice;
-    long deliveryLimit;
+    String deliveryLimit;
     boolean isPrepaymentAvailable;
 
     public ClarifyDTO() {}
 
-    public ClarifyDTO(String sender, String password, int orderKey, int totalPrice, long deliveryLimit, boolean isPrepaymentAvailable) {
+    public ClarifyDTO(String sender, String password, int orderKey, int totalPrice, String deliveryLimit, boolean isPrepaymentAvailable) {
         this.sender = sender;
         this.password = password;
         this.orderKey = orderKey;
@@ -51,11 +51,11 @@ public class ClarifyDTO {
         this.totalPrice = totalPrice;
     }
 
-    public long getDeliveryLimit() {
+    public String getDeliveryLimit() {
         return deliveryLimit;
     }
 
-    public void setDeliveryLimit(long deliveryLimit) {
+    public void setDeliveryLimit(String deliveryLimit) {
         this.deliveryLimit = deliveryLimit;
     }
 

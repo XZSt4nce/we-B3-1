@@ -44,6 +44,10 @@ class ServiceRequest {
         return await this.#get(`transactions/unconfirmed/info/${txID}`);
     }
 
+    async getTransactionInfo(txID) {
+        return await this.#get(`transactions/info/${txID}`);
+    }
+
     async signAndBroadcast(params={}) {
         return await this.#post("transactions/signAndBroadcast", {
             "contractId": contractAddress,

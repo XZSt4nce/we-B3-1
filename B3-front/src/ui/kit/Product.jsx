@@ -3,6 +3,7 @@ import {Button, Card, Form} from "react-bootstrap";
 import {Context} from "../../core/ContextWrapper";
 import {Control} from "./FormGroups/Control";
 import {Link} from "react-router-dom";
+import {Errors} from "../../constants/Errors";
 
 export const Product = ({product, amount, isOrderProduct=false, inStock=false}) => {
     const {user, users, makeOrder, confirmProduct, actionExecuting} = useContext(Context);
@@ -21,20 +22,31 @@ export const Product = ({product, amount, isOrderProduct=false, inStock=false}) 
 
     const handleMakeOrder = async (ev, executor) => {
         ev.preventDefault();
-        const count = ev.target[0].value;
-        const deliveryLimit = ev.target[1].value;
+        const count = Number(ev.target[0].value);
+        const deliveryLimit = new Date(ev.target[1].value).toISOString().split("T")[0];
         const deliveryAddress = ev.target[2].value;
-        await makeOrder(product.id, executor, count, deliveryLimit.getTime(), deliveryAddress);
+        if (count < 1) {
+            alert(Errors.INCORRECT_DATA);
+        } else if (deliveryLimit < new Date().toISOString().split("T")[0]) {
+            alert(Errors.INCORRECT_DATA);
+        } else {
+            await makeOrder(product.id, executor, count, deliveryLimit, deliveryAddress);
+        }
     };
 
     const handleConfirmProduct = async (ev) => {
         ev.preventDefault();
         const description = ev.target[0].value;
-        const regions = ev.target[1].value.split(",").map(region => region.trim());
-        const minOrderCount = ev.target[2].value;
-        const maxOrderCount = ev.target[3].value;
-        const distributors = ev.target[4].value.split(",").map(region => region.trim());
-        await confirmProduct(product.id, description, regions, minOrderCount, maxOrderCount, distributors);
+        const minOrderCount = Number(ev.target[1].value);
+        const maxOrderCount = Number(ev.target[2].value);
+        const distributors = ev.target[3].value.split(",").map(region => region.trim()).filter(region => region !== "");
+        if (maxOrderCount < minOrderCount) {
+            alert(Errors.INCORRECT_DATA);
+        } else if (distributors.length === 0) {
+            alert(Errors.INCORRECT_DATA);
+        } else {
+            await confirmProduct(product.id, description, minOrderCount, maxOrderCount, distributors);
+        }
     };
 
     const cardFooter = (executor) =>
@@ -45,17 +57,16 @@ export const Product = ({product, amount, isOrderProduct=false, inStock=false}) 
                     <Card.Footer>
                         <Form onSubmit={handleConfirmProduct}>
                             <Control controlId={"description"} label={"Описание"} defaultValue={product.description} />
-                            <Control controlId={"regions"} label={"Регионы"} placeholder={"Введите через запятую регионы"} defaultValue={product.regions.join(", ")} />
-                            <Control controlId={"minOrderCount"} min={0} type={"number"} label={"Минимальное количество за заказ"} />
-                            <Control controlId={"maxOrderCount"} min={0} type={"number"} label={"Максимальное количество за заказ"} />
+                            <Control controlId={"minOrderCount"} min={1} type={"number"} label={"Минимальное количество за заказ"} />
+                            <Control controlId={"maxOrderCount"} min={1} type={"number"} label={"Максимальное количество за заказ"} />
                             <Control controlId={"distributors"} label={"Дистрибуторы"} placeholder={"Введите через запятую дистрибуторов"} />
-                            <Button disabled={actionExecuting} type={"submit"}>Подтвердить</Button>
+                            <Button variant={"success"} disabled={actionExecuting} type={"submit"}>Подтвердить</Button>
                         </Form>
                     </Card.Footer>
                 ) : !isOrderProduct && (
                     <Card.Footer>
-                        <Card.Text>В наличии: {users[executor].productsProvided[product.id] ?? 0} шт.</Card.Text>
-                        {(product.minOrderCount <= users[executor].productsProvided[product.id] ?? 0) && (
+                        {users[executor].role !== "SUPPLIER" && <Card.Text>В наличии: {users[executor].productsProvided[product.id] ?? 0} шт.</Card.Text>}
+                        {(product.minOrderCount <= (users[executor].productsProvided[product.id] ?? 0) || users[executor].role === "SUPPLIER") && (
                             <Form onSubmit={(ev) => handleMakeOrder(ev, executor)}>
                                 <Control
                                     controlId={"count"}

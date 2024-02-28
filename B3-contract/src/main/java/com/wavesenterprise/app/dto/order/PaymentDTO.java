@@ -1,13 +1,13 @@
 package com.wavesenterprise.app.dto.order;
 
-public class PayDTO {
+public class PaymentDTO {
     String sender;
     String password;
     int orderKey;
 
-    public PayDTO() {}
+    public PaymentDTO() {}
 
-    public PayDTO(String sender, String password, int orderKey) {
+    public PaymentDTO(String sender, String password, int orderKey) {
         this.sender = sender;
         this.password = password;
         this.orderKey = orderKey;

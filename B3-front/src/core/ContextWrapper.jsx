@@ -49,24 +49,40 @@ export const ContextWrapper = ({children}) => {
         if (login in users) {
             alert(Errors.USER_ALREADY_EXIST);
         } else {
-            await ServiceContract.signUp(login, password, title, description, fullName, email, regions, organizationKey)
+            await ServiceContract.signUp({
+                login: login,
+                password: password,
+                title: title,
+                description: description,
+                fullName: fullName,
+                email: email,
+                regions: regions,
+                organizationKey: organizationKey
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, async () => {
+                        waitTransaction(data.id, "Заявка на регистрацию в системе отправлена оператору", async () => {
                             await updateUser(login);
-                            alert("Заявка на регистрацию в системе отправлена оператору");
+                            await updateOrganizations();
                         });
                     }
                 });
         }
     };
 
-    const activateUser = async (userPublicKey, description, fullName, email, regions) => {
+    const activateUser = async (userPublicKey, fullName, email, regions) => {
         if (userPublicKey in users) {
-            await ServiceContract.activateUser(user.login, password, userPublicKey, description, fullName, email, regions)
+            await ServiceContract.activateUser({
+                sender: user.login,
+                password: password,
+                userPublicKey: userPublicKey,
+                fullName: fullName,
+                email: email,
+                regions: regions
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, async () => await updateUser(userPublicKey));
+                        waitTransaction(data.id, "Пользователь активирован", async () => await updateUser(userPublicKey));
                     }
                 });
         } else {
@@ -102,14 +118,17 @@ export const ContextWrapper = ({children}) => {
     const signOut = () => {
         setUser({});
         setPassword("");
-        setOrders([]);
     };
 
     const blockUser = async (userPublicKey) => {
-        await ServiceContract.blockUser(user.login, password, userPublicKey)
+        await ServiceContract.blockUser({
+            sender: user.login,
+            password: password,
+            userPublicKey: userPublicKey
+        })
             .then((data) => {
                 if (data) {
-                    waitTransaction(data.id, async () => await updateUser(userPublicKey));
+                    waitTransaction(data.id, "Пользователь заблокирован", async () => await updateUser(userPublicKey));
                 }
             });
     };
@@ -124,13 +143,18 @@ export const ContextWrapper = ({children}) => {
         }
 
         if (regionsMatch) {
-            await ServiceContract.createProduct(user.login, password, title, description, regions)
+            await ServiceContract.createProduct({
+                sender: user.login,
+                password: password,
+                title: title,
+                description: description,
+                regions: regions
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, async () => {
+                        waitTransaction(data.id, "Заявка на создание продукта отправлена оператору", async () => {
                             await updateProducts();
                             await updateUser(user.login);
-                            alert("Заявка на создание продукта отправлена оператору");
                         });
                     }
                 });
@@ -139,45 +163,45 @@ export const ContextWrapper = ({children}) => {
         }
     };
 
-    const confirmProduct = async (productKey, description, regions, minOrderCount, maxOrderCount, distributors) => {
-        let regionsMatch = true;
-        for (const region of regions) {
-            if (!products[productKey].mader.regions.includes(region)) {
-                regionsMatch = false;
-                break;
-            }
-        }
-
-        if (minOrderCount > maxOrderCount) {
-            alert(Errors.INCORRECT_DATA);
-        } else if (productKey >= products.length) {
+    const confirmProduct = async (productKey, description, minOrderCount, maxOrderCount, distributors) => {
+        if (productKey >= products.length || productKey < 0) {
             alert(Errors.PRODUCT_NOT_FOUND);
-        } else if (productKey < 0) {
-            alert(Errors.INCORRECT_DATA);
-        } else if (regionsMatch) {
-            await ServiceContract.confirmProduct(user.login, password, productKey, description, JSON.stringify(regions), minOrderCount, maxOrderCount, JSON.stringify(distributors))
+        } else {
+            await ServiceContract.confirmProduct({
+                sender: user.login,
+                password: password,
+                productKey: productKey,
+                description: description,
+                minOrderCount: minOrderCount,
+                maxOrderCount: maxOrderCount,
+                distributors: distributors
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, updateProducts);
+                        waitTransaction(data.id, "Продукт подтверждён", updateProducts);
                     }
                 });
-        } else {
-            alert(Errors.SUPPLIER_REGIONS_NOT_MATCH);
         }
     };
 
     const makeOrder = async (productKey, executorKey, count, desiredDeliveryLimit, deliveryAddress) => {
-        if (productKey >= products.length) {
+        if (productKey >= products.length || productKey < 0) {
             alert(Errors.PRODUCT_NOT_FOUND);
-        } else if (productKey < 0) {
-            alert(Errors.INCORRECT_DATA);
         } else if (!(executorKey in users)) {
             alert(Errors.USER_NOT_FOUND);
         } else {
-            await ServiceContract.makeOrder(user.login, password, productKey, executorKey, count, desiredDeliveryLimit, deliveryAddress)
+            await ServiceContract.makeOrder({
+                sender: user.login,
+                password: password,
+                productKey: productKey,
+                executorKey: executorKey,
+                count: count,
+                desiredDeliveryLimit: desiredDeliveryLimit,
+                deliveryAddress: deliveryAddress
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, async () => {
+                        waitTransaction(data.id, "Заказ совершён. Ожидайте уточнения данных", async () => {
                             await updateOrders();
                             await updateUser(user.login);
                             await updateUser(executorKey);
@@ -188,88 +212,114 @@ export const ContextWrapper = ({children}) => {
     };
 
     const clarifyOrder = async (orderKey, totalPrice, deliveryLimit, isPrepaymentAvailable) => {
-        if (orderKey >= orders.length) {
+        if (orderKey >= orders.length || orderKey < 0) {
             alert(Errors.ORDER_NOT_FOUND);
-        } else if (orderKey < 0) {
-            alert(Errors.INCORRECT_DATA);
         } else {
-            await ServiceContract.clarifyOrder(user.login, password, orderKey, totalPrice, deliveryLimit, isPrepaymentAvailable)
+            await ServiceContract.clarifyOrder({
+                sender: user.login,
+                password: password,
+                orderKey: orderKey,
+                totalPrice: totalPrice,
+                deliveryLimit: deliveryLimit,
+                prepaymentAvailable: isPrepaymentAvailable
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, updateOrders);
+                        waitTransaction(data.id, "Заказ уточнён", updateOrders);
                     }
                 });
         }
     };
 
     const confirmOrCancelOrder = async (orderKey, isConfirm) => {
-        if (orderKey >= orders.length) {
+        if (orderKey >= orders.length || orderKey < 0) {
             alert(Errors.ORDER_NOT_FOUND);
-        } else if (orderKey < 0) {
-            alert(Errors.INCORRECT_DATA);
         } else {
-            await ServiceContract.confirmOrCancelOrder(user.login, password, orderKey, isConfirm)
+            await ServiceContract.confirmOrCancelOrder({
+                sender: user.login,
+                password: password,
+                orderKey: orderKey,
+                confirm: isConfirm
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, updateOrders);
+                        waitTransaction(data.id, "Успешная операция", updateOrders);
                     }
                 });
         }
     };
 
     const payOrder = async (orderKey) => {
-        if (orderKey >= orders.length) {
+        if (orderKey >= orders.length || orderKey < 0) {
             alert(Errors.ORDER_NOT_FOUND);
-        } else if (orderKey < 0) {
-            alert(Errors.INCORRECT_DATA);
         } else {
-            await ServiceContract.payOrder(user.login, password, orderKey)
+            await ServiceContract.payOrder({
+                sender: user.login,
+                password: password,
+                orderKey: orderKey
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, updateOrders);
+                        waitTransaction(data.id, "Заказ оплачен", async () => {
+                            await updateOrders();
+                            await updateUser(user.login);
+                            await updateUser(orders[orderKey].executorKey);
+                        });
                     }
                 });
         }
     };
 
     const completeOrder = async (orderKey) => {
-        if (orderKey >= orders.length) {
+        if (orderKey >= orders.length || orderKey < 0) {
             alert(Errors.ORDER_NOT_FOUND);
-        } else if (orderKey < 0) {
-            alert(Errors.INCORRECT_DATA);
         } else {
-            await ServiceContract.completeOrder(user.login, password, orderKey)
+            await ServiceContract.completeOrder({
+                sender: user.login,
+                password: password,
+                orderKey: orderKey
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, updateOrders);
+                        waitTransaction(data.id, "Заказ выполнен", updateOrders);
                     }
                 });
         }
     };
 
     const takeOrder = async (orderKey) => {
-        if (orderKey >= orders.length) {
+        if (orderKey >= orders.length || orderKey < 0) {
             alert(Errors.ORDER_NOT_FOUND);
-        } else if (orderKey < 0) {
-            alert(Errors.INCORRECT_DATA);
         } else {
-            await ServiceContract.takeOrder(user.login, password, orderKey)
+            await ServiceContract.takeOrder({
+                sender: user.login,
+                password: password,
+                orderKey: orderKey
+            })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, updateOrders);
+                        waitTransaction(data.id, "Заказ получен", updateOrders);
                     }
                 });
         }
     };
 
-    async function waitTransaction(txID, callback) {
+    async function waitTransaction(txID, successMsg, callback) {
         setActionExecuting(true);
         const intervalId = setInterval(async () => {
             await ServiceRequest.getUnconfirmedTransaction(txID)
-                .then((data) => {
+                .then(async (data) => {
                     if (!data) {
                         setActionExecuting(false);
-                        callback();
+                        await ServiceRequest.getTransactionInfo(txID)
+                            .then(txInfo => {
+                                if (txInfo) {
+                                    callback();
+                                    alert(successMsg)
+                                } else {
+                                    alert(Errors.REQUEST_ERROR);
+                                }
+                            });
                         clearInterval(intervalId);
                     }
                 })
@@ -282,10 +332,32 @@ export const ContextWrapper = ({children}) => {
             .then((data) => {
                 if (data) {
                     const userData = JSON.parse(data.value);
+                    console.log(users);
+                    console.log({...users, [userPublicKey]: userData});
+                    console.log(userData);
+                    // ToDo: при совершении заказа заказчик в users не обновляется
                     setUsers({...users, [userPublicKey]: userData});
                     if (user.login === userPublicKey) {
                         setUser(userData);
                     }
+                }
+            });
+    }
+
+    async function updateProducts() {
+        await ServiceRequest.getContractKey(ContractKeys.PRODUCTS_LIST)
+            .then((data) => {
+                if (data) {
+                    setProducts(JSON.parse(data.value));
+                }
+            });
+    }
+
+    async function updateOrganizations() {
+        await ServiceRequest.getContractKey(ContractKeys.ORGANIZATIONS_LIST)
+            .then((data) => {
+                if (data) {
+                    setOrganizations(JSON.parse(data.value));
                 }
             });
     }
@@ -295,15 +367,6 @@ export const ContextWrapper = ({children}) => {
             .then((data) => {
                 if (data) {
                     setOrders(JSON.parse(data.value));
-                }
-            });
-    }
-
-    async function updateProducts(){
-        await ServiceRequest.getContractKey(ContractKeys.PRODUCTS_LIST)
-            .then((data) => {
-                if (data) {
-                    setProducts(JSON.parse(data.value));
                 }
             });
     }

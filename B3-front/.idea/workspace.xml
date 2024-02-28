@@ -4,19 +4,25 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9a18c2c8-82d3-40a7-9306-d9cb0aa3c6ab" name="Changes" comment="redundant">
-      <change beforePath="$PROJECT_DIR$/../B3-contract/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/Dockerfile" afterDir="false" />
+    <list default="true" id="9a18c2c8-82d3-40a7-9306-d9cb0aa3c6ab" name="Changes" comment="ttt">
+      <change beforePath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/api/IContract.java" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/api/IContract.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/app/Contract.java" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/app/Contract.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/dto/order/PayDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/../B3-contract/src/main/java/com/wavesenterprise/app/dto/order/PaymentDTO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/constants/ContractAddress.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/ContractAddress.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/constants/Errors.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/Errors.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/ContextWrapper.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/ContextWrapper.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/service/ServiceContract.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/ServiceContract.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/service/ServiceRequest.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/ServiceRequest.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/components/CreateProductForm.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/CreateProductForm.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/components/Market.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/Market.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/components/SignUp.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/components/SignUp.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/kit/FormGroups/Control.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/FormGroups/Control.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/kit/Order.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/Order.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/kit/Product.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/Product.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/kit/User.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/kit/User.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../createLocalRepo.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../start.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../start.bat" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../startContract.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../startContract.bat" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -83,7 +89,8 @@
       <workItem from="1707809618931" duration="16094000" />
       <workItem from="1708066693525" duration="11175000" />
       <workItem from="1708943444006" duration="5476000" />
-      <workItem from="1709017628867" duration="6106000" />
+      <workItem from="1709017628867" duration="6260000" />
+      <workItem from="1709104579560" duration="19446000" />
     </task>
     <task id="LOCAL-00001" summary="node credentials">
       <option name="closed" value="true" />
@@ -125,7 +132,15 @@
       <option name="project" value="LOCAL" />
       <updated>1708934566931</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="ttt">
+      <option name="closed" value="true" />
+      <created>1709024327496</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1709024327496</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -139,6 +154,7 @@
     <MESSAGE value="node credentials" />
     <MESSAGE value="returned enums" />
     <MESSAGE value="redundant" />
-    <option name="LAST_COMMIT_MESSAGE" value="redundant" />
+    <MESSAGE value="ttt" />
+    <option name="LAST_COMMIT_MESSAGE" value="ttt" />
   </component>
 </project>

@@ -3,8 +3,9 @@ package com.wavesenterprise.app.domain;
 import com.google.common.hash.Hashing;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.Objects;
 
 import static com.wavesenterprise.app.api.IContract.Exceptions.INCORRECT_DATA;
 import static com.wavesenterprise.app.api.IContract.Exceptions.NOT_ENOUGH_RIGHTS;
@@ -18,9 +19,9 @@ public class Order {
     private int productKey;
     private int amount;
     private int price;
-    private long deliveryDate;
+    private String deliveryDate;
     private String deliveryAddress;
-    private Date creationDate;
+    private long creationDate;
     private OrderStatus status;
     private boolean isPrepaymentAvailable;
 
@@ -32,7 +33,7 @@ public class Order {
             String executorKey,
             int productKey,
             int amount,
-            long deliveryDate,
+            String deliveryDate,
             String deliveryAddress
     ) {
         this.id = id;
@@ -43,7 +44,7 @@ public class Order {
         this.deliveryDate = deliveryDate;
         this.deliveryAddress = deliveryAddress;
         this.status = WAITING_FOR_EMPLOYEE;
-        this.creationDate = new Date();
+        this.creationDate = new Date().getTime();
         updateHash();
     }
 
@@ -68,42 +69,57 @@ public class Order {
 
     public void clarify(
             Integer totalPrice,
-            long deliveryLimit,
+            String deliveryLimit,
             boolean isPrepaymentAvailable
     ) throws Exception {
         if (totalPrice < 1) {
             throw INCORRECT_DATA;
+        } else if (this.status != WAITING_FOR_EMPLOYEE) {
+            throw NOT_ENOUGH_RIGHTS;
         }
         this.price = totalPrice;
         this.deliveryDate = deliveryLimit;
         this.isPrepaymentAvailable = isPrepaymentAvailable;
+        this.status = WAITING_FOR_CLIENT;
         updateHash();
     }
 
-    public void confirmOrCancel(boolean isConfirm) {
-        this.status = isConfirm ? EXECUTING : CANCELLED;
+    public void confirmOrCancel(boolean isConfirm) throws Exception {
+        if (this.status != WAITING_FOR_CLIENT) {
+            throw NOT_ENOUGH_RIGHTS;
+        }
+
+        if (isConfirm) {
+            if (this.isPrepaymentAvailable) {
+                this.status = WAITING_FOR_PAYMENT;
+            } else {
+                this.status = EXECUTING;
+            }
+        } else {
+            this.status = CANCELLED;
+        }
         updateHash();
     }
 
     public void pay() throws Exception {
-        if (Objects.equals(this.status, WAITING_FOR_CLIENT)) { // Если организация (или её сотрудник) уточнила данные заказа
-            if (!this.isPrepaymentAvailable) { // Если предоплата недоступна
-                throw NOT_ENOUGH_RIGHTS; // То отказать в выполнении метода
-            }
-            this.status = EXECUTING_PAID;
-        } else if (Objects.equals(this.status, WAITING_FOR_PAYMENT)) {
-            this.status = WAITING_FOR_TAKING; // Присвоить статус заказа "Ожидает получения"
-        } else {
+        if (this.status != WAITING_FOR_PAYMENT) {
             throw NOT_ENOUGH_RIGHTS;
+        }
+
+        if (this.isPrepaymentAvailable) {
+            this.status = EXECUTING_PAID;
+        } else {
+            this.status = WAITING_FOR_TAKING;
         }
         updateHash();
     }
 
     public void complete() throws Exception {
-        this.deliveryDate = new Date().getTime();
-        if (Objects.equals(this.status, EXECUTING)) {
+        this.deliveryDate = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+
+        if (this.status == EXECUTING) {
             this.status = WAITING_FOR_PAYMENT;
-        } else if (Objects.equals(this.status, EXECUTING_PAID)) {
+        } else if (this.status == EXECUTING_PAID) {
             this.status = WAITING_FOR_TAKING;
         } else {
             throw NOT_ENOUGH_RIGHTS;
@@ -111,7 +127,10 @@ public class Order {
         updateHash();
     }
 
-    public void take() {
+    public void take() throws Exception {
+        if (this.status != WAITING_FOR_TAKING) {
+            throw NOT_ENOUGH_RIGHTS;
+        }
         this.status = TAKEN;
         updateHash();
     }
@@ -134,11 +153,11 @@ public class Order {
         return deliveryAddress;
     }
 
-    public Date getCreationDate() {
+    public long getCreationDate() {
         return creationDate;
     }
 
-    public long getDeliveryDate() {
+    public String getDeliveryDate() {
         return deliveryDate;
     }
 
@@ -166,7 +185,7 @@ public class Order {
         this.price = price;
     }
 
-    public void setDeliveryDate(long deliveryDate) {
+    public void setDeliveryDate(String deliveryDate) {
         this.deliveryDate = deliveryDate;
     }
 
@@ -214,7 +233,7 @@ public class Order {
         this.deliveryAddress = deliveryAddress;
     }
 
-    public void setCreationDate(Date creationDate) {
+    public void setCreationDate(long creationDate) {
         this.creationDate = creationDate;
     }
 }

@@ -34,13 +34,11 @@ public class Product {
 
     public void confirm(
             String description,
-            String[] regions,
             Integer minOrderCount,
             Integer maxOrderCount,
             String[] distributors
     ) {
         this.description = description;
-        this.regions = Arrays.stream(regions).map(String::toUpperCase).distinct().toList().toArray(new String[0]);
         this.minOrderCount = minOrderCount;
         this.maxOrderCount = maxOrderCount;
         this.distributors = distributors;
