@@ -298,7 +298,11 @@ export const ContextWrapper = ({children}) => {
             })
                 .then((data) => {
                     if (data) {
-                        waitTransaction(data.id, "Заказ получен", updateOrders);
+                        waitTransaction(data.id, "Заказ получен", async () => {
+                            await updateOrders();
+                            await updateUser(user.login);
+                            await updateUser(orders[orderKey].executorKey);
+                        });
                     }
                 });
         }
@@ -332,11 +336,9 @@ export const ContextWrapper = ({children}) => {
             .then((data) => {
                 if (data) {
                     const userData = JSON.parse(data.value);
-                    console.log(users);
-                    console.log({...users, [userPublicKey]: userData});
-                    console.log(userData);
-                    // ToDo: при совершении заказа заказчик в users не обновляется
-                    setUsers({...users, [userPublicKey]: userData});
+                    setUsers((state) => {
+                        return {...state, [userPublicKey]: userData}
+                    });
                     if (user.login === userPublicKey) {
                         setUser(userData);
                     }

@@ -54,6 +54,8 @@ export const User = ({userStruct}) => {
                                 title={"Склад"}
                                 products={Object.keys(userStruct.products).map(product => products[product])}
                                 amounts={userStruct.products}
+                                isInPossession={true}
+                                ownerStruct={userStruct}
                             />
                         )}
                     </>

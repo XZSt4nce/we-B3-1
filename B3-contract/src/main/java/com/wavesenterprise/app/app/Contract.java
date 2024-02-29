@@ -601,6 +601,11 @@ public class Contract implements IContract {
         int productId = productList.size();
         Product newProduct = new Product(productId, sender, title, description, regions);
         newProduct.confirm(description, minOrderCount, maxOrderCount, distributors);
+        for (String distributor : distributors) {
+            User distributorUser = userMapping.get(distributor);
+            distributorUser.addProductProvided(productId);
+            userMapping.put(distributor, distributorUser);
+        }
         productList.add(newProduct);
         contractState.put(PRODUCTS_LIST, productList);
         user.addProductProvided(productId);

@@ -39,7 +39,7 @@ export const Market = () => {
                     type={"number"}
                     min={1}
                     value={minOrderCount}
-                    onChange={(ev) => setMinOrderCount(Number(ev.target.value))}
+                    onChange={(ev) => setMinOrderCount(+ev.target.value)}
                 />
                 <Control
                     controlId={"maxOrderCount"}
@@ -47,7 +47,7 @@ export const Market = () => {
                     type={"number"}
                     min={1}
                     value={maxOrderCount}
-                    onChange={(ev) => setMaxOrderCount(Number(ev.target.value))}
+                    onChange={(ev) => setMaxOrderCount(+ev.target.value)}
                 />
             </Form>
             <ProductsList

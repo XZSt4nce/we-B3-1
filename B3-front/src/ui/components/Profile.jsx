@@ -21,9 +21,16 @@ export const Profile = () => {
                 <ProductsList
                     title={"Мой ассортимент"}
                     products={user.productsProvided.map(product => products[product])}
+                    isInPossession={true}
                 />
             )}
-            {user.role !== "SUPPLIER" && <ProductsList products={Object.keys(user.products).map(product => products[product])} amounts={user.products} title={"Склад"}/>}
+            {user.role !== "SUPPLIER" && <ProductsList
+                products={Object.keys(user.products).map(product => products[product])}
+                amounts={user.products}
+                ownerStruct={user}
+                title={"Склад"}
+                isInPossession={true}
+            />}
             <OrdersList orders={user.orders.map(orderKey => orders[orderKey])} />
         </WhiteBlock>
     );
