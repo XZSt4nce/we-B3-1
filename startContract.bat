@@ -5,10 +5,10 @@ SET imageURL=localhost:5000/%contractName%:%tag%
 
 FOR /F "tokens=3 delims=: " %%a IN ('wsl cat ~/credentials.txt ^|find "blockchain"') DO SET blockchainAddress=%%a
 FOR /F "tokens=3 delims=: " %%a IN ('wsl cat ~/credentials.txt ^|find "keypair"') DO SET keypairPassword=%%a
-ECHO export const nodeCredentials = {blockchainAddress: %blockchainAddress%, keypairPassword: %keypairPassword%};
+ECHO export const nodeCredentials = {blockchainAddress: %blockchainAddress%, keypairPassword: %keypairPassword%} > B3-front\src\constants\NodeCredentials.js;
 FOR /F "tokens=2 delims=:" %%a IN ('docker images --quiet --no-trunc %imageURL%') DO SET id=%%a
 FOR /F "tokens=2 delims=,: " %%a IN ('curl -s -X POST "http://localhost:6882/transactions/signAndBroadcast" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"image\": \"%imageURL%\", \"fee\": 0, \"imageHash\": \"%id%\", \"type\": 103, \"params\": [ { \"type\": \"string\", \"value\": \"init\", \"key\": \"action\" } ], \"version\": 2, \"sender\": \"%blockchainAddress%\", \"password\": \"%keypairPassword%\", \"feeAssetId\": null, \"contractName\": \"%contractName%\"}"^|find "id"') DO (
-	ECHO export const contractAddress=%%a > B3-front\src\constants\contractAddress.js
+	ECHO export const contractAddress=%%a > B3-front\src\constants\ContractAddress.js
 )
 ECHO Deploying contract...
 timeout /t 10 /nobreak
