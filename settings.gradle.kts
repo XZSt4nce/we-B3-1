@@ -34,6 +34,6 @@ pluginManagement {
 	}
 }
 
-rootProject.name = "B3"
+rootProject.name = "waves-shop"
 include("B3-contract")
 include("B3-contract")
